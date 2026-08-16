@@ -346,16 +346,19 @@
     <!-- ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA) -->
     <div id="tab-content-ampacidade" class="hidden space-y-6">
 
-      <!-- SELETOR DE TIPO DE CARGA -->
+      <!-- SELETOR DE TIPO DE CARGA (3 MODOS) -->
       <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-upe-blue uppercase tracking-wider">Tipo de Aplicação:</span>
-          <div class="inline-flex rounded-lg p-1 bg-slate-100 border border-slate-200">
+          <span class="text-xs font-bold text-upe-blue uppercase tracking-wider">Tipo de Carga:</span>
+          <div class="inline-flex rounded-lg p-1 bg-slate-100 border border-slate-200 gap-1">
             <button type="button" id="amp-tipo-geral-btn" class="px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition">
-              💡 Carga Geral / Ilum / TUG
+              💡 Carga Geral
             </button>
             <button type="button" id="amp-tipo-motor-btn" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition">
               ⚙️ Motor Elétrico
+            </button>
+            <button type="button" id="amp-tipo-capacitor-btn" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition">
+              ⚡ Banco de Capacitores
             </button>
           </div>
         </div>
@@ -365,21 +368,21 @@
         </span>
       </div>
 
-      <!-- GRID PRINCIPAL: ENTRADAS (ESQUERDA) x RESULTADOS (DIREITA) -->
+      <!-- GRID PRINCIPAL -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- COLUNA DE ENTRADAS (PASSO 1 A 4) -->
+        <!-- COLUNA DE ENTRADAS -->
         <div class="lg:col-span-6 space-y-5">
           
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 class="text-xs font-bold uppercase tracking-wider text-upe-blue flex items-center gap-2 border-b border-slate-100 pb-2.5">
               <span class="flex h-5 w-5 rounded-full bg-upe-red text-white text-[11px] items-center justify-center font-bold">1</span>
-              Parâmetros do Circuito & Motor
+              Parâmetros de Entrada
             </h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               
-              <!-- 1) Tensão Nominal -->
+              <!-- Tensão Nominal -->
               <div>
                 <label for="amp-tensao" class="block text-xs font-bold text-slate-700 mb-1">Tensão Nominal (V)</label>
                 <select id="amp-tensao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none">
@@ -390,7 +393,7 @@
                 </select>
               </div>
 
-              <!-- 1) Esquema de Ligação -->
+              <!-- Esquema de Ligação -->
               <div>
                 <label for="amp-sistema" class="block text-xs font-bold text-slate-700 mb-1">Esquema de Ligação</label>
                 <select id="amp-sistema" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
@@ -400,9 +403,9 @@
                 </select>
               </div>
 
-              <!-- 2) SELEÇÃO DO MODO DE ENTRADA DO MOTOR (Apenas visível no modo Motor) -->
+              <!-- MODO MOTOR: SELETOR DE ENTRADA -->
               <div id="amp-motor-modo-wrapper" class="hidden sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-                <label class="block text-xs font-bold text-upe-blue">2. Modo de Entrada dos Dados do Motor:</label>
+                <label class="block text-xs font-bold text-upe-blue">Modo de Entrada do Motor:</label>
                 <div class="flex gap-4 text-xs font-medium text-slate-700">
                   <label class="flex items-center gap-1.5 cursor-pointer">
                     <input type="radio" name="amp-motor-input-type" value="potencia" checked class="text-upe-blue focus:ring-upe-blue">
@@ -410,51 +413,64 @@
                   </label>
                   <label class="flex items-center gap-1.5 cursor-pointer">
                     <input type="radio" name="amp-motor-input-type" value="corrente" class="text-upe-blue focus:ring-upe-blue">
-                    Por Corrente Nominal Direta (In de placa)
+                    Por Corrente de Placa (In)
                   </label>
                 </div>
               </div>
 
-              <!-- CAMPO: Corrente Nominal de Placa (In) -->
+              <!-- CAMPO MOTOR: Corrente Nominal Direta -->
               <div id="amp-campo-in-direta" class="hidden sm:col-span-2">
                 <label for="amp-in-placa" class="block text-xs font-bold text-slate-700 mb-1">Corrente Nominal de Placa - In (A)</label>
                 <input type="number" id="amp-in-placa" value="27.5" min="0.1" step="0.1" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
               </div>
 
-              <!-- CAMPOS DE POTÊNCIA -->
+              <!-- CAMPOS: POTÊNCIA ATIVA / MOTOR -->
               <div id="amp-campo-potencia-wrapper" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label for="amp-potencia" class="block text-xs font-bold text-slate-700 mb-1">Potência Mecânica/Ativa</label>
+                  <label for="amp-potencia" class="block text-xs font-bold text-slate-700 mb-1">Potência</label>
                   <div class="flex gap-2">
-                    <input type="number" id="amp-potencia" value="10" min="0.1" step="0.5" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+                    <input type="number" id="amp-potencia" value="10000" min="0.1" step="100" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
                     <select id="amp-unidade-potencia" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 outline-none">
-                      <option value="cv" selected>CV</option>
-                      <option value="hp">HP</option>
+                      <option value="w" selected>W</option>
                       <option value="kw">kW</option>
-                      <option value="w">W</option>
+                      <option value="cv">CV</option>
+                      <option value="hp">HP</option>
                     </select>
                   </div>
                 </div>
 
-                <div>
+                <div id="amp-campo-cosphi-wrapper">
                   <label for="amp-cosPhi" class="block text-xs font-bold text-slate-700 mb-1">Fator de Potência (cos φ)</label>
-                  <input type="number" id="amp-cosPhi" value="0.85" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+                  <input type="number" id="amp-cosPhi" value="0.92" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
                 </div>
               </div>
 
-              <!-- Rendimento (η) - Apenas para Motor -->
+              <!-- CAMPO: BANCO DE CAPACITORES (POTÊNCIA REATIVA Q) -->
+              <div id="amp-campo-capacitor-wrapper" class="hidden sm:col-span-2">
+                <label for="amp-potencia-reativa" class="block text-xs font-bold text-slate-700 mb-1">Potência Reativa do Banco (Q)</label>
+                <div class="flex gap-2">
+                  <input type="number" id="amp-potencia-reativa" value="25" min="0.1" step="0.5" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+                  <select id="amp-unidade-reativa" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 outline-none">
+                    <option value="kvar" selected>kvar</option>
+                    <option value="var">var</option>
+                  </select>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Acresce automaticamente +35% de sobrecorrente para harmônicos ($I_b = 1{,}35 \cdot I_n$).</p>
+              </div>
+
+              <!-- Rendimento (Motor) -->
               <div id="amp-campo-rendimento" class="hidden">
-                <label for="amp-rendimento" class="block text-xs font-bold text-slate-700 mb-1">Rendimento do Motor (η)</label>
+                <label for="amp-rendimento" class="block text-xs font-bold text-slate-700 mb-1">Rendimento (η)</label>
                 <input type="number" id="amp-rendimento" value="0.88" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
               </div>
 
-              <!-- 3) Fator de Serviço (FS) - Apenas para Motor -->
+              <!-- Fator de Serviço (Motor) -->
               <div id="amp-campo-fs" class="hidden">
                 <label for="amp-fs" class="block text-xs font-bold text-slate-700 mb-1">Fator de Serviço (FS)</label>
                 <input type="number" id="amp-fs" value="1.15" min="1.0" max="2.0" step="0.05" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
               </div>
 
-              <!-- 4) Método de Instalação (NBR 5410) -->
+              <!-- Método de Instalação -->
               <div class="sm:col-span-2">
                 <label for="amp-metodo" class="block text-xs font-bold text-slate-700 mb-1">Método de Instalação (Tabela 33)</label>
                 <select id="amp-metodo" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-xs text-slate-900 transition outline-none">
@@ -467,7 +483,7 @@
                 </select>
               </div>
 
-              <!-- 4) Tipo de Isolação -->
+              <!-- Tipo de Isolação -->
               <div class="sm:col-span-2">
                 <label for="amp-isolacao" class="block text-xs font-bold text-slate-700 mb-1">Isolação do Cabo</label>
                 <select id="amp-isolacao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
@@ -481,10 +497,10 @@
 
         </div>
 
-        <!-- COLUNA DE RESULTADOS E OBSERVAÇÃO TÉCNICA -->
+        <!-- COLUNA DE RESULTADOS -->
         <div class="lg:col-span-6 space-y-5">
 
-          <!-- CARDS: CONDUTOR (PASSO 3) & CAPACIDADE -->
+          <!-- CARDS: CONDUTOR & CAPACIDADE -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             <div class="bg-white border-2 border-upe-blue rounded-xl p-5 shadow-md relative overflow-hidden">
@@ -570,9 +586,14 @@
   </main>
 
   <!-- RODAPÉ INSTITUCIONAL -->
-  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500 font-medium">
-    <p>Universidade de Pernambuco (UPE) • Escola Politécnica de Pernambuco (POLI)</p>
-  </footer>
+  <footer class="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-500 font-medium space-y-1.5">
+  <p>Dimensionador NBR 5410 • Universidade de Pernambuco (POLI / UPE)</p>
+  <p class="text-slate-600">
+    Desenvolvido por <strong class="text-slate-900">Juan Kalebe</strong> • 
+    <a href="https://github.com/juankalebe" target="_blank" class="text-upe-blue hover:text-upe-red font-bold underline transition">GitHub</a> | 
+    <a href="https://linkedin.com/in/juankalebe" target="_blank" class="text-upe-blue hover:text-upe-red font-bold underline transition">LinkedIn</a>
+  </p>
+</footer>
 
   <script type="module" src="js/app.js"></script>
 </body>

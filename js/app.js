@@ -54,17 +54,20 @@ const presets = {
 };
 
 // ==============================================================================
-// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE & MOTORES)
+// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE, MOTORES & CAPACITORES)
 // ==============================================================================
-let ampTipoAplicacao = 'geral'; // 'geral' ou 'motor'
+let ampTipoAplicacao = 'geral'; // 'geral', 'motor' ou 'capacitor'
 
 const ampControls = {
   tipoGeralBtn: document.getElementById('amp-tipo-geral-btn'),
   tipoMotorBtn: document.getElementById('amp-tipo-motor-btn'),
+  tipoCapacitorBtn: document.getElementById('amp-tipo-capacitor-btn'),
   modoBadge: document.getElementById('amp-modo-badge'),
   motorModoWrapper: document.getElementById('amp-motor-modo-wrapper'),
   campoInDireta: document.getElementById('amp-campo-in-direta'),
   campoPotenciaWrapper: document.getElementById('amp-campo-potencia-wrapper'),
+  campoCosPhiWrapper: document.getElementById('amp-campo-cosphi-wrapper'),
+  campoCapacitorWrapper: document.getElementById('amp-campo-capacitor-wrapper'),
   campoRendimento: document.getElementById('amp-campo-rendimento'),
   campoFs: document.getElementById('amp-campo-fs')
 };
@@ -75,6 +78,8 @@ const ampInputs = {
   inPlaca: document.getElementById('amp-in-placa'),
   potencia: document.getElementById('amp-potencia'),
   unidadePotencia: document.getElementById('amp-unidade-potencia'),
+  potenciaReativa: document.getElementById('amp-potencia-reativa'),
+  unidadeReativa: document.getElementById('amp-unidade-reativa'),
   cosPhi: document.getElementById('amp-cosPhi'),
   rendimento: document.getElementById('amp-rendimento'),
   fs: document.getElementById('amp-fs'),
@@ -171,7 +176,7 @@ function atualizarCalculoGeral() {
 }
 
 // ==============================================================================
-// 4. CÁLCULO DA ABA 2: AMPACIDADE & MOTORES (SEM FATORES DE CORREÇÃO)
+// 4. CÁLCULO DA ABA 2: AMPACIDADE (GERAL, MOTORES & BANCO DE CAPACITORES)
 // ==============================================================================
 function atualizarCalculoAmpacidade() {
   if (!ampInputs.tensao) return;
@@ -188,7 +193,7 @@ function atualizarCalculoAmpacidade() {
   const motorInputType = document.querySelector('input[name="amp-motor-input-type"]:checked')?.value || 'potencia';
 
   if (ampTipoAplicacao === 'geral') {
-    // Carga Geral: P (W), cos phi
+    // CARGA GERAL
     const P = parseFloat(ampInputs.potencia.value) || 0;
     const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
 
@@ -203,8 +208,8 @@ function atualizarCalculoAmpacidade() {
     }
     ib = inNominal;
 
-  } else {
-    // Motor Elétrico
+  } else if (ampTipoAplicacao === 'motor') {
+    // MOTOR ELÉTRICO
     const fs = parseFloat(ampInputs.fs.value) || 1.0;
 
     if (motorInputType === 'corrente') {
@@ -217,7 +222,6 @@ function atualizarCalculoAmpacidade() {
       const cosPhi = parseFloat(ampInputs.cosPhi.value) || 0.85;
       const eta = parseFloat(ampInputs.rendimento.value) || 0.88;
 
-      // Conversão para Watts
       let pWatts = pVal;
       if (unidade === 'cv') pWatts = pVal * 735.5;
       else if (unidade === 'hp') pWatts = pVal * 746;
@@ -232,6 +236,24 @@ function atualizarCalculoAmpacidade() {
         ib = inNominal * fs;
         formulaTexto = `In = ${pVal} ${unidade.toUpperCase()} (${pWatts.toFixed(0)}W) / (${V}V · ${cosPhi} · ${eta}) = ${inNominal.toFixed(2)} A ➔ Ib = In · ${fs} (FS) = <strong>${ib.toFixed(2)} A</strong>`;
       }
+    }
+
+  } else if (ampTipoAplicacao === 'capacitor') {
+    // BANCO DE CAPACITORES (+35% SOBRECORRENTE)
+    let qVal = parseFloat(ampInputs.potenciaReativa.value) || 0;
+    const unidadeReativa = ampInputs.unidadeReativa.value;
+    const qVar = unidadeReativa === 'kvar' ? qVal * 1000 : qVal;
+
+    if (qVar <= 0 || V <= 0) return;
+
+    if (sistema === 'trifasico') {
+      inNominal = qVar / (Math.sqrt(3) * V);
+      ib = inNominal * 1.35;
+      formulaTexto = `In = Q / (√3 · V) = ${qVar.toFixed(0)} var / (1.732 · ${V} V) = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos/Sobretensão) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
+    } else {
+      inNominal = qVar / V;
+      ib = inNominal * 1.35;
+      formulaTexto = `In = Q / V = ${qVar.toFixed(0)} var / ${V} V = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos/Sobretensão) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
     }
   }
 
@@ -276,31 +298,37 @@ function atualizarCalculoAmpacidade() {
 }
 
 // ==============================================================================
-// 5. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR)
+// 5. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR vs CAPACITOR)
 // ==============================================================================
 function configurarModoAmpacidade(tipo) {
   ampTipoAplicacao = tipo;
 
-  if (tipo === 'geral') {
-    ampControls.tipoGeralBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
-    ampControls.tipoMotorBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
-    ampControls.modoBadge.textContent = 'Modo: Carga Geral';
+  const btnAtivoClass = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
+  const btnInativoClass = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
 
+  ampControls.tipoGeralBtn.className = tipo === 'geral' ? btnAtivoClass : btnInativoClass;
+  ampControls.tipoMotorBtn.className = tipo === 'motor' ? btnAtivoClass : btnInativoClass;
+  ampControls.tipoCapacitorBtn.className = tipo === 'capacitor' ? btnAtivoClass : btnInativoClass;
+
+  if (tipo === 'geral') {
+    ampControls.modoBadge.textContent = 'Modo: Carga Geral';
     ampControls.motorModoWrapper.classList.add('hidden');
     ampControls.campoInDireta.classList.add('hidden');
     ampControls.campoPotenciaWrapper.classList.remove('hidden');
+    ampControls.campoCosPhiWrapper.classList.remove('hidden');
+    ampControls.campoCapacitorWrapper.classList.add('hidden');
     ampControls.campoRendimento.classList.add('hidden');
     ampControls.campoFs.classList.add('hidden');
 
     ampInputs.potencia.value = '10000';
     ampInputs.unidadePotencia.value = 'w';
     ampInputs.cosPhi.value = '0.92';
-  } else {
-    ampControls.tipoMotorBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
-    ampControls.tipoGeralBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
-    ampControls.modoBadge.textContent = 'Modo: Motor Elétrico';
 
+  } else if (tipo === 'motor') {
+    ampControls.modoBadge.textContent = 'Modo: Motor Elétrico';
     ampControls.motorModoWrapper.classList.remove('hidden');
+    ampControls.campoCosPhiWrapper.classList.remove('hidden');
+    ampControls.campoCapacitorWrapper.classList.add('hidden');
     ampControls.campoRendimento.classList.remove('hidden');
     ampControls.campoFs.classList.remove('hidden');
 
@@ -311,6 +339,18 @@ function configurarModoAmpacidade(tipo) {
     ampInputs.fs.value = '1.15';
 
     atualizarSubModoMotor();
+
+  } else if (tipo === 'capacitor') {
+    ampControls.modoBadge.textContent = 'Modo: Banco de Capacitores (+35%)';
+    ampControls.motorModoWrapper.classList.add('hidden');
+    ampControls.campoInDireta.classList.add('hidden');
+    ampControls.campoPotenciaWrapper.classList.add('hidden');
+    ampControls.campoCapacitorWrapper.classList.remove('hidden');
+    ampControls.campoRendimento.classList.add('hidden');
+    ampControls.campoFs.classList.add('hidden');
+
+    ampInputs.potenciaReativa.value = '25';
+    ampInputs.unidadeReativa.value = 'kvar';
   }
 
   atualizarCalculoAmpacidade();
@@ -359,6 +399,7 @@ document.querySelectorAll('input[name="amp-motor-input-type"]').forEach(radio =>
 
 if (ampControls.tipoGeralBtn) ampControls.tipoGeralBtn.addEventListener('click', () => configurarModoAmpacidade('geral'));
 if (ampControls.tipoMotorBtn) ampControls.tipoMotorBtn.addEventListener('click', () => configurarModoAmpacidade('motor'));
+if (ampControls.tipoCapacitorBtn) ampControls.tipoCapacitorBtn.addEventListener('click', () => configurarModoAmpacidade('capacitor'));
 
 // Presets Aba 1
 function aplicarPreset(config) {
