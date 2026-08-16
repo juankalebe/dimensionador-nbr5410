@@ -346,53 +346,115 @@
     <!-- ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA) -->
     <div id="tab-content-ampacidade" class="hidden space-y-6">
 
+      <!-- SELETOR DE TIPO DE CARGA -->
+      <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-upe-blue uppercase tracking-wider">Tipo de Aplicação:</span>
+          <div class="inline-flex rounded-lg p-1 bg-slate-100 border border-slate-200">
+            <button type="button" id="amp-tipo-geral-btn" class="px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition">
+              💡 Carga Geral / Ilum / TUG
+            </button>
+            <button type="button" id="amp-tipo-motor-btn" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition">
+              ⚙️ Motor Elétrico
+            </button>
+          </div>
+        </div>
+
+        <span id="amp-modo-badge" class="text-[11px] font-mono font-bold px-2.5 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
+          Modo: Carga Geral
+        </span>
+      </div>
+
       <!-- GRID PRINCIPAL: ENTRADAS (ESQUERDA) x RESULTADOS (DIREITA) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- COLUNA DE ENTRADAS (PASSO 1) -->
+        <!-- COLUNA DE ENTRADAS (PASSO 1 A 4) -->
         <div class="lg:col-span-6 space-y-5">
           
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 class="text-xs font-bold uppercase tracking-wider text-upe-blue flex items-center gap-2 border-b border-slate-100 pb-2.5">
               <span class="flex h-5 w-5 rounded-full bg-upe-red text-white text-[11px] items-center justify-center font-bold">1</span>
-              Passo 1: Parâmetros do Circuito & Instalação
+              Parâmetros do Circuito & Motor
             </h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               
-              <!-- Potência -->
-              <div>
-                <label for="amp-potencia" class="block text-xs font-bold text-slate-700 mb-1">Potência da Carga (W)</label>
-                <input type="number" id="amp-potencia" value="10000" min="1" step="100" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
-              </div>
-
-              <!-- Tensão -->
+              <!-- 1) Tensão Nominal -->
               <div>
                 <label for="amp-tensao" class="block text-xs font-bold text-slate-700 mb-1">Tensão Nominal (V)</label>
                 <select id="amp-tensao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none">
                   <option value="127">127 V</option>
                   <option value="220" selected>220 V</option>
                   <option value="380">380 V</option>
+                  <option value="440">440 V</option>
                 </select>
               </div>
 
-              <!-- Esquema de Ligação -->
+              <!-- 1) Esquema de Ligação -->
               <div>
                 <label for="amp-sistema" class="block text-xs font-bold text-slate-700 mb-1">Esquema de Ligação</label>
                 <select id="amp-sistema" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
-                  <option value="monofasico">Monofásico (F + N / 2 cond.)</option>
-                  <option value="bifasico">Bifásico (F + F / 2 cond.)</option>
-                  <option value="trifasico" selected>Trifásico (3F ou 3F+N / 3 cond.)</option>
+                  <option value="trifasico" selected>Trifásico (3 cond. carregados)</option>
+                  <option value="monofasico">Monofásico (2 cond. carregados)</option>
+                  <option value="bifasico">Bifásico (2 cond. carregados)</option>
                 </select>
               </div>
 
-              <!-- Fator de Potência -->
-              <div>
-                <label for="amp-cosPhi" class="block text-xs font-bold text-slate-700 mb-1">Fator de Potência (cos φ)</label>
-                <input type="number" id="amp-cosPhi" value="0.92" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              <!-- 2) SELEÇÃO DO MODO DE ENTRADA DO MOTOR (Apenas visível no modo Motor) -->
+              <div id="amp-motor-modo-wrapper" class="hidden sm:col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
+                <label class="block text-xs font-bold text-upe-blue">2. Modo de Entrada dos Dados do Motor:</label>
+                <div class="flex gap-4 text-xs font-medium text-slate-700">
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="amp-motor-input-type" value="potencia" checked class="text-upe-blue focus:ring-upe-blue">
+                    Por Potência e Rendimento
+                  </label>
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="amp-motor-input-type" value="corrente" class="text-upe-blue focus:ring-upe-blue">
+                    Por Corrente Nominal Direta (In de placa)
+                  </label>
+                </div>
               </div>
 
-              <!-- Método de Instalação (NBR 5410) -->
+              <!-- CAMPO: Corrente Nominal de Placa (In) -->
+              <div id="amp-campo-in-direta" class="hidden sm:col-span-2">
+                <label for="amp-in-placa" class="block text-xs font-bold text-slate-700 mb-1">Corrente Nominal de Placa - In (A)</label>
+                <input type="number" id="amp-in-placa" value="27.5" min="0.1" step="0.1" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              </div>
+
+              <!-- CAMPOS DE POTÊNCIA -->
+              <div id="amp-campo-potencia-wrapper" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label for="amp-potencia" class="block text-xs font-bold text-slate-700 mb-1">Potência Mecânica/Ativa</label>
+                  <div class="flex gap-2">
+                    <input type="number" id="amp-potencia" value="10" min="0.1" step="0.5" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+                    <select id="amp-unidade-potencia" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 outline-none">
+                      <option value="cv" selected>CV</option>
+                      <option value="hp">HP</option>
+                      <option value="kw">kW</option>
+                      <option value="w">W</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="amp-cosPhi" class="block text-xs font-bold text-slate-700 mb-1">Fator de Potência (cos φ)</label>
+                  <input type="number" id="amp-cosPhi" value="0.85" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+                </div>
+              </div>
+
+              <!-- Rendimento (η) - Apenas para Motor -->
+              <div id="amp-campo-rendimento" class="hidden">
+                <label for="amp-rendimento" class="block text-xs font-bold text-slate-700 mb-1">Rendimento do Motor (η)</label>
+                <input type="number" id="amp-rendimento" value="0.88" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              </div>
+
+              <!-- 3) Fator de Serviço (FS) - Apenas para Motor -->
+              <div id="amp-campo-fs" class="hidden">
+                <label for="amp-fs" class="block text-xs font-bold text-slate-700 mb-1">Fator de Serviço (FS)</label>
+                <input type="number" id="amp-fs" value="1.15" min="1.0" max="2.0" step="0.05" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              </div>
+
+              <!-- 4) Método de Instalação (NBR 5410) -->
               <div class="sm:col-span-2">
                 <label for="amp-metodo" class="block text-xs font-bold text-slate-700 mb-1">Método de Instalação (Tabela 33)</label>
                 <select id="amp-metodo" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-xs text-slate-900 transition outline-none">
@@ -405,9 +467,9 @@
                 </select>
               </div>
 
-              <!-- Tipo de Isolação -->
+              <!-- 4) Tipo de Isolação -->
               <div class="sm:col-span-2">
-                <label for="amp-isolacao" class="block text-xs font-bold text-slate-700 mb-1">Isolação do Condutor</label>
+                <label for="amp-isolacao" class="block text-xs font-bold text-slate-700 mb-1">Isolação do Cabo</label>
                 <select id="amp-isolacao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
                   <option value="PVC" selected>PVC 70 °C (Tabela 36 - NBR 5410)</option>
                   <option value="XLPE">XLPE / EPR 90 °C (Tabela 37 - NBR 5410)</option>
@@ -419,16 +481,15 @@
 
         </div>
 
-        <!-- COLUNA DE RESULTADOS E NOTAS (PASSOS 2, 3 E 4) -->
+        <!-- COLUNA DE RESULTADOS E OBSERVAÇÃO TÉCNICA -->
         <div class="lg:col-span-6 space-y-5">
 
-          <!-- CARDS DE RESULTADO: CONDUTOR (PASSO 3) & CORRENTE (PASSO 2) -->
+          <!-- CARDS: CONDUTOR (PASSO 3) & CAPACIDADE -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            <!-- Card Condutor Selecionado -->
             <div class="bg-white border-2 border-upe-blue rounded-xl p-5 shadow-md relative overflow-hidden">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">3. Condutor Selecionado</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">Condutor Recomendado</span>
                 <span id="amp-res-metodo-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-upe-blueLight text-upe-blue font-mono">B1 / 3C</span>
               </div>
               <div class="flex items-baseline gap-2 mt-2">
@@ -441,11 +502,10 @@
               </p>
             </div>
 
-            <!-- Card Capacidade Nominal Iz -->
             <div class="bg-white border-2 border-slate-300 rounded-xl p-5 shadow-md relative overflow-hidden">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Capacidade Nominal (Iz)</span>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">Catálogo</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">Sem Correção</span>
               </div>
               <div class="flex items-baseline gap-2 mt-2">
                 <span id="amp-res-iz" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono tracking-tight">--</span>
@@ -459,36 +519,42 @@
 
           </div>
 
-          <!-- DIAGNÓSTICO DO CÁLCULO (PASSO 2) -->
+          <!-- DIAGNÓSTICO DAS CORRENTES -->
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
             <h3 class="text-xs font-bold uppercase tracking-wider text-upe-blue border-b border-slate-100 pb-2">
-              2. Cálculo da Corrente de Projeto (Ib)
+              Correntes de Dimensionamento
             </h3>
 
-            <div class="grid grid-cols-2 gap-3 text-center">
-              <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <span class="text-[11px] font-bold text-slate-500 block mb-1">Corrente Calculada (Ib)</span>
-                <span id="amp-res-ib" class="text-lg sm:text-xl font-black font-mono text-slate-900">--</span>
-                <span class="text-xs font-bold text-slate-500">A</span>
+            <div class="grid grid-cols-3 gap-2.5 text-center">
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                <span class="text-[10px] font-bold text-slate-500 block mb-1">Nominal (In)</span>
+                <span id="amp-res-in" class="text-base font-black font-mono text-slate-900">--</span>
+                <span class="text-[11px] font-bold text-slate-500">A</span>
               </div>
 
-              <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                <span class="text-[11px] font-bold text-slate-500 block mb-1">Margem Térmica (Iz - Ib)</span>
-                <span id="amp-res-margem" class="text-lg sm:text-xl font-black font-mono text-emerald-700">--</span>
-                <span class="text-xs font-bold text-slate-500">A</span>
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                <span class="text-[10px] font-bold text-slate-500 block mb-1">Projeto (Ib)</span>
+                <span id="amp-res-ib" class="text-base font-black font-mono text-upe-blue">--</span>
+                <span class="text-[11px] font-bold text-slate-500">A</span>
+              </div>
+
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                <span class="text-[10px] font-bold text-slate-500 block mb-1">Folga (Iz - Ib)</span>
+                <span id="amp-res-margem" class="text-base font-black font-mono text-emerald-700">--</span>
+                <span class="text-[11px] font-bold text-slate-500">A</span>
               </div>
             </div>
 
             <div id="amp-res-formula-box" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 leading-relaxed">
-              Ib = P / (√3 · V · cosφ)
+              Ib = In
             </div>
           </div>
 
-          <!-- PASSO 4: OBSERVAÇÃO TÉCNICA -->
+          <!-- OBSERVAÇÃO TÉCNICA -->
           <div class="bg-blue-50/70 border border-upe-blue/30 rounded-xl p-4 text-xs font-medium text-upe-blue flex items-start gap-3">
             <span class="text-base leading-none">ℹ️</span>
             <div>
-              <span class="font-bold block uppercase tracking-wider text-[11px] mb-0.5">4. Observação Técnica:</span>
+              <span class="font-bold block uppercase tracking-wider text-[11px] mb-0.5">Observação Técnica:</span>
               <p class="text-slate-700 leading-relaxed">
                 A carga trifásica considerada para cálculo é perfeitamente equilibrada.
               </p>

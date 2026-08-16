@@ -54,13 +54,30 @@ const presets = {
 };
 
 // ==============================================================================
-// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE)
+// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE & MOTORES)
 // ==============================================================================
+let ampTipoAplicacao = 'geral'; // 'geral' ou 'motor'
+
+const ampControls = {
+  tipoGeralBtn: document.getElementById('amp-tipo-geral-btn'),
+  tipoMotorBtn: document.getElementById('amp-tipo-motor-btn'),
+  modoBadge: document.getElementById('amp-modo-badge'),
+  motorModoWrapper: document.getElementById('amp-motor-modo-wrapper'),
+  campoInDireta: document.getElementById('amp-campo-in-direta'),
+  campoPotenciaWrapper: document.getElementById('amp-campo-potencia-wrapper'),
+  campoRendimento: document.getElementById('amp-campo-rendimento'),
+  campoFs: document.getElementById('amp-campo-fs')
+};
+
 const ampInputs = {
-  potencia: document.getElementById('amp-potencia'),
   tensao: document.getElementById('amp-tensao'),
   sistema: document.getElementById('amp-sistema'),
+  inPlaca: document.getElementById('amp-in-placa'),
+  potencia: document.getElementById('amp-potencia'),
+  unidadePotencia: document.getElementById('amp-unidade-potencia'),
   cosPhi: document.getElementById('amp-cosPhi'),
+  rendimento: document.getElementById('amp-rendimento'),
+  fs: document.getElementById('amp-fs'),
   metodo: document.getElementById('amp-metodo'),
   isolacao: document.getElementById('amp-isolacao')
 };
@@ -70,12 +87,12 @@ const ampOutputs = {
   secao: document.getElementById('amp-res-secao'),
   isolacaoLabel: document.getElementById('amp-res-isolacao-label'),
   iz: document.getElementById('amp-res-iz'),
+  in: document.getElementById('amp-res-in'),
   ib: document.getElementById('amp-res-ib'),
   margem: document.getElementById('amp-res-margem'),
   formulaBox: document.getElementById('amp-res-formula-box')
 };
 
-// Gerenciador de Abas
 const tabs = {
   btnGeral: document.getElementById('tab-btn-geral'),
   btnAmpacidade: document.getElementById('tab-btn-ampacidade'),
@@ -106,12 +123,10 @@ function atualizarCalculoGeral() {
 
   const res = dimensionarCircuito(dados);
 
-  // Cards Principais
   outputs.secaoFinal.textContent = res.sFinal;
   outputs.disjuntor.textContent = res.disjuntor !== null ? res.disjuntor : '⚠️';
   outputs.criterioBadge.textContent = `Critério: ${res.criterioGovernante}`;
 
-  // Métricas
   outputs.ib.textContent = res.ib.toFixed(2);
   outputs.izNec.textContent = res.izNecessario.toFixed(2);
   outputs.izReal.textContent = res.izRealInstalado.toFixed(2);
@@ -120,7 +135,6 @@ function atualizarCalculoGeral() {
   outputs.quedaVolts.textContent = res.deltaVRealVolts.toFixed(2);
   outputs.quedaLimiteLabel.textContent = dados.quedaMaxPercent.toFixed(1);
 
-  // Barra de Queda de Tensão
   const proporcaoQueda = (res.deltaVRealPercent / dados.quedaMaxPercent) * 100;
   const larguraBarra = Math.min(Math.max(proporcaoQueda, 5), 100);
   outputs.quedaBar.style.width = `${larguraBarra}%`;
@@ -133,7 +147,6 @@ function atualizarCalculoGeral() {
     outputs.quedaBar.className = 'h-full rounded-full transition-all duration-500 bg-upe-red animate-pulse';
   }
 
-  // Status da Proteção
   if (res.disjuntor !== null) {
     outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-blue-50 border-blue-200 text-[#1C3C78]';
     outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
@@ -142,7 +155,6 @@ function atualizarCalculoGeral() {
     outputs.statusProtecao.innerHTML = `✖ <strong>Proteção Incompatível:</strong> Nenhum disjuntor comercial atende Ib (${res.ib.toFixed(1)} A) ≤ In ≤ Iz_real (${res.izRealInstalado.toFixed(1)} A).`;
   }
 
-  // Memorial de Cálculo
   const formulaIb = dados.sistema === 'trifasico'
     ? `Ib = P / (√3 · V · cosφ · η) = ${dados.potencia} / (1.732 · ${dados.tensao} · ${dados.cosPhi} · ${dados.rendimento}) = ${res.ib} A`
     : `Ib = P / (V · cosφ · η) = ${dados.potencia} / (${dados.tensao} · ${dados.cosPhi} · ${dados.rendimento}) = ${res.ib} A`;
@@ -159,33 +171,71 @@ function atualizarCalculoGeral() {
 }
 
 // ==============================================================================
-// 4. CÁLCULO DA ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA)
+// 4. CÁLCULO DA ABA 2: AMPACIDADE & MOTORES (SEM FATORES DE CORREÇÃO)
 // ==============================================================================
 function atualizarCalculoAmpacidade() {
-  if (!ampInputs.potencia) return;
+  if (!ampInputs.tensao) return;
 
-  const P = parseFloat(ampInputs.potencia.value) || 0;
   const V = parseFloat(ampInputs.tensao.value) || 220;
   const sistema = ampInputs.sistema.value;
-  const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
   const metodo = ampInputs.metodo.value;
   const isolacao = ampInputs.isolacao.value;
 
-  if (P <= 0 || V <= 0 || cosPhi <= 0) return;
-
-  // PASSO 2: CÁLCULO DA CORRENTE DE PROJETO (Ib)
+  let inNominal = 0;
   let ib = 0;
   let formulaTexto = '';
 
-  if (sistema === 'trifasico') {
-    ib = P / (Math.sqrt(3) * V * cosPhi);
-    formulaTexto = `Ib = P / (√3 · V · cosφ) = ${P} W / (1.732 · ${V} V · ${cosPhi}) = <strong>${ib.toFixed(2)} A</strong>`;
+  const motorInputType = document.querySelector('input[name="amp-motor-input-type"]:checked')?.value || 'potencia';
+
+  if (ampTipoAplicacao === 'geral') {
+    // Carga Geral: P (W), cos phi
+    const P = parseFloat(ampInputs.potencia.value) || 0;
+    const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
+
+    if (P <= 0 || V <= 0 || cosPhi <= 0) return;
+
+    if (sistema === 'trifasico') {
+      inNominal = P / (Math.sqrt(3) * V * cosPhi);
+      formulaTexto = `Ib = P / (√3 · V · cosφ) = ${P} W / (1.732 · ${V} V · ${cosPhi}) = <strong>${inNominal.toFixed(2)} A</strong>`;
+    } else {
+      inNominal = P / (V * cosPhi);
+      formulaTexto = `Ib = P / (V · cosφ) = ${P} W / (${V} V · ${cosPhi}) = <strong>${inNominal.toFixed(2)} A</strong>`;
+    }
+    ib = inNominal;
+
   } else {
-    ib = P / (V * cosPhi);
-    formulaTexto = `Ib = P / (V · cosφ) = ${P} W / (${V} V · ${cosPhi}) = <strong>${ib.toFixed(2)} A</strong>`;
+    // Motor Elétrico
+    const fs = parseFloat(ampInputs.fs.value) || 1.0;
+
+    if (motorInputType === 'corrente') {
+      inNominal = parseFloat(ampInputs.inPlaca.value) || 0;
+      ib = inNominal * fs;
+      formulaTexto = `In (Placa) = ${inNominal.toFixed(2)} A | Ib = In · FS = ${inNominal.toFixed(2)} · ${fs} = <strong>${ib.toFixed(2)} A</strong>`;
+    } else {
+      let pVal = parseFloat(ampInputs.potencia.value) || 0;
+      const unidade = ampInputs.unidadePotencia.value;
+      const cosPhi = parseFloat(ampInputs.cosPhi.value) || 0.85;
+      const eta = parseFloat(ampInputs.rendimento.value) || 0.88;
+
+      // Conversão para Watts
+      let pWatts = pVal;
+      if (unidade === 'cv') pWatts = pVal * 735.5;
+      else if (unidade === 'hp') pWatts = pVal * 746;
+      else if (unidade === 'kw') pWatts = pVal * 1000;
+
+      if (sistema === 'trifasico') {
+        inNominal = pWatts / (Math.sqrt(3) * V * cosPhi * eta);
+        ib = inNominal * fs;
+        formulaTexto = `In = ${pVal} ${unidade.toUpperCase()} (${pWatts.toFixed(0)}W) / (√3 · ${V}V · ${cosPhi} · ${eta}) = ${inNominal.toFixed(2)} A ➔ Ib = In · ${fs} (FS) = <strong>${ib.toFixed(2)} A</strong>`;
+      } else {
+        inNominal = pWatts / (V * cosPhi * eta);
+        ib = inNominal * fs;
+        formulaTexto = `In = ${pVal} ${unidade.toUpperCase()} (${pWatts.toFixed(0)}W) / (${V}V · ${cosPhi} · ${eta}) = ${inNominal.toFixed(2)} A ➔ Ib = In · ${fs} (FS) = <strong>${ib.toFixed(2)} A</strong>`;
+      }
+    }
   }
 
-  // PASSO 3: SELEÇÃO DO CONDUTOR (Iz >= Ib)
+  // Consulta na Tabela da NBR 5410 (Iz >= Ib)
   const tabela = isolacao === 'PVC' ? TABELA_36_PVC : TABELA_37_XLPE;
   const condKey = sistema === 'trifasico' ? 'n3' : 'n2';
 
@@ -204,10 +254,11 @@ function atualizarCalculoAmpacidade() {
     }
   }
 
-  // ATUALIZAÇÃO DA TELA
+  // Atualização Visual
+  ampOutputs.in.textContent = inNominal.toFixed(2);
   ampOutputs.ib.textContent = ib.toFixed(2);
   ampOutputs.formulaBox.innerHTML = formulaTexto;
-  ampOutputs.metodoBadge.textContent = `${metodo} / ${condKey === 'n3' ? '3 Cond. Carregados' : '2 Cond. Carregados'}`;
+  ampOutputs.metodoBadge.textContent = `${metodo} / ${condKey === 'n3' ? '3 Cond.' : '2 Cond.'}`;
   ampOutputs.isolacaoLabel.textContent = `Cobre / ${isolacao === 'PVC' ? 'PVC 70°C (Tab. 36)' : 'XLPE/EPR 90°C (Tab. 37)'}`;
 
   if (condutorEncontrado) {
@@ -215,20 +266,78 @@ function atualizarCalculoAmpacidade() {
     ampOutputs.secao.textContent = condutorEncontrado.secao;
     ampOutputs.iz.textContent = condutorEncontrado.iz.toFixed(1);
     ampOutputs.margem.textContent = `+${margem.toFixed(2)}`;
-    ampOutputs.margem.className = 'text-lg sm:text-xl font-black font-mono text-emerald-700';
+    ampOutputs.margem.className = 'text-base font-black font-mono text-emerald-700';
   } else {
     ampOutputs.secao.textContent = '> 240';
     ampOutputs.iz.textContent = '--';
     ampOutputs.margem.textContent = 'Sobrecarga';
-    ampOutputs.margem.className = 'text-sm font-bold font-mono text-upe-red';
+    ampOutputs.margem.className = 'text-xs font-bold font-mono text-upe-red';
   }
 }
 
 // ==============================================================================
-// 5. EVENT LISTENERS (REATIVIDADE)
+// 5. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR)
+// ==============================================================================
+function configurarModoAmpacidade(tipo) {
+  ampTipoAplicacao = tipo;
+
+  if (tipo === 'geral') {
+    ampControls.tipoGeralBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
+    ampControls.tipoMotorBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
+    ampControls.modoBadge.textContent = 'Modo: Carga Geral';
+
+    ampControls.motorModoWrapper.classList.add('hidden');
+    ampControls.campoInDireta.classList.add('hidden');
+    ampControls.campoPotenciaWrapper.classList.remove('hidden');
+    ampControls.campoRendimento.classList.add('hidden');
+    ampControls.campoFs.classList.add('hidden');
+
+    ampInputs.potencia.value = '10000';
+    ampInputs.unidadePotencia.value = 'w';
+    ampInputs.cosPhi.value = '0.92';
+  } else {
+    ampControls.tipoMotorBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
+    ampControls.tipoGeralBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
+    ampControls.modoBadge.textContent = 'Modo: Motor Elétrico';
+
+    ampControls.motorModoWrapper.classList.remove('hidden');
+    ampControls.campoRendimento.classList.remove('hidden');
+    ampControls.campoFs.classList.remove('hidden');
+
+    ampInputs.potencia.value = '10';
+    ampInputs.unidadePotencia.value = 'cv';
+    ampInputs.cosPhi.value = '0.85';
+    ampInputs.rendimento.value = '0.88';
+    ampInputs.fs.value = '1.15';
+
+    atualizarSubModoMotor();
+  }
+
+  atualizarCalculoAmpacidade();
+}
+
+function atualizarSubModoMotor() {
+  if (ampTipoAplicacao !== 'motor') return;
+
+  const motorInputType = document.querySelector('input[name="amp-motor-input-type"]:checked')?.value || 'potencia';
+
+  if (motorInputType === 'corrente') {
+    ampControls.campoInDireta.classList.remove('hidden');
+    ampControls.campoPotenciaWrapper.classList.add('hidden');
+    ampControls.campoRendimento.classList.add('hidden');
+  } else {
+    ampControls.campoInDireta.classList.add('hidden');
+    ampControls.campoPotenciaWrapper.classList.remove('hidden');
+    ampControls.campoRendimento.classList.remove('hidden');
+  }
+  atualizarCalculoAmpacidade();
+}
+
+// ==============================================================================
+// 6. LISTENERS E EVENTOS
 // ==============================================================================
 
-// Listeners da Aba 1 (Geral)
+// Aba 1
 Object.values(inputs).forEach(input => {
   if (input) {
     input.addEventListener('input', atualizarCalculoGeral);
@@ -236,7 +345,7 @@ Object.values(inputs).forEach(input => {
   }
 });
 
-// Listeners da Aba 2 (Ampacidade)
+// Aba 2
 Object.values(ampInputs).forEach(input => {
   if (input) {
     input.addEventListener('input', atualizarCalculoAmpacidade);
@@ -244,7 +353,14 @@ Object.values(ampInputs).forEach(input => {
   }
 });
 
-// Presets da Aba 1
+document.querySelectorAll('input[name="amp-motor-input-type"]').forEach(radio => {
+  radio.addEventListener('change', atualizarSubModoMotor);
+});
+
+if (ampControls.tipoGeralBtn) ampControls.tipoGeralBtn.addEventListener('click', () => configurarModoAmpacidade('geral'));
+if (ampControls.tipoMotorBtn) ampControls.tipoMotorBtn.addEventListener('click', () => configurarModoAmpacidade('motor'));
+
+// Presets Aba 1
 function aplicarPreset(config) {
   inputs.potencia.value = config.potencia;
   inputs.tensao.value = config.tensao;
@@ -261,54 +377,35 @@ function aplicarPreset(config) {
 
 if (presets.chuveiro) {
   presets.chuveiro.addEventListener('click', () => {
-    aplicarPreset({
-      potencia: 7500, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
-      cosPhi: 1.0, rendimento: 1.0, temperatura: 35, numCircuitos: 2, comprimento: 18, quedaMaxPercent: 4.0
-    });
+    aplicarPreset({ potencia: 7500, tensao: 220, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 1.0, rendimento: 1.0, temperatura: 35, numCircuitos: 2, comprimento: 18, quedaMaxPercent: 4.0 });
   });
 }
-
 if (presets.ar) {
   presets.ar.addEventListener('click', () => {
-    aplicarPreset({
-      potencia: 1400, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
-      cosPhi: 0.85, rendimento: 0.90, temperatura: 35, numCircuitos: 1, comprimento: 22, quedaMaxPercent: 4.0
-    });
+    aplicarPreset({ potencia: 1400, tensao: 220, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 0.85, rendimento: 0.90, temperatura: 35, numCircuitos: 1, comprimento: 22, quedaMaxPercent: 4.0 });
   });
 }
-
 if (presets.tugs) {
   presets.tugs.addEventListener('click', () => {
-    aplicarPreset({
-      potencia: 2200, tensao: 127, sistema: 'monofasico', tipoUso: 'forca',
-      cosPhi: 1.0, rendimento: 1.0, temperatura: 30, numCircuitos: 3, comprimento: 12, quedaMaxPercent: 4.0
-    });
+    aplicarPreset({ potencia: 2200, tensao: 127, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 1.0, rendimento: 1.0, temperatura: 30, numCircuitos: 3, comprimento: 12, quedaMaxPercent: 4.0 });
   });
 }
-
 if (presets.ilum) {
   presets.ilum.addEventListener('click', () => {
-    aplicarPreset({
-      potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao',
-      cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0
-    });
+    aplicarPreset({ potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao', cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0 });
   });
 }
 
-// ==============================================================================
-// 6. GERENCIADOR DE NAVEGAÇÃO ENTRE ABAS (TABS)
-// ==============================================================================
+// Alternador de Abas
 function alternarAba(abaAtiva) {
   if (abaAtiva === 'geral') {
     tabs.contentGeral.classList.remove('hidden');
     tabs.contentAmpacidade.classList.add('hidden');
-
     tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
     tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
   } else if (abaAtiva === 'ampacidade') {
     tabs.contentGeral.classList.add('hidden');
     tabs.contentAmpacidade.classList.remove('hidden');
-
     tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
     tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
   }
@@ -319,8 +416,6 @@ if (tabs.btnGeral && tabs.btnAmpacidade) {
   tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
 }
 
-// ==============================================================================
-// 7. INICIALIZAÇÃO AUTOMÁTICA
-// ==============================================================================
+// Inicialização
 atualizarCalculoGeral();
 atualizarCalculoAmpacidade();
