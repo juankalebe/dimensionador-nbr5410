@@ -52,6 +52,13 @@ const presets = {
   ilum: document.getElementById('preset-ilum')
 };
 
+const tabs = {
+  btnGeral: document.getElementById('tab-btn-geral'),
+  btnAmpacidade: document.getElementById('tab-btn-ampacidade'),
+  contentGeral: document.getElementById('tab-content-geral'),
+  contentAmpacidade: document.getElementById('tab-content-ampacidade')
+};
+
 // ------------------------------------------------------------------------------
 // 2. FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO REATIVA
 // ------------------------------------------------------------------------------
@@ -100,7 +107,7 @@ function atualizarCalculo() {
     outputs.quedaBar.className = 'h-full rounded-full transition-all duration-500 bg-upe-red animate-pulse';
   }
 
-  // Status da Proteção
+  // Status da Proteção com Contraste Institucional
   if (res.disjuntor !== null) {
     outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-blue-50 border-blue-200 text-[#1C3C78]';
     outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
@@ -174,6 +181,30 @@ presets.ilum.addEventListener('click', () => {
     cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0
   });
 });
+
+// ------------------------------------------------------------------------------
+// 4. GERENCIADOR DE NAVEGAÇÃO ENTRE ABAS (TABS)
+// ------------------------------------------------------------------------------
+function alternarAba(abaAtiva) {
+  if (abaAtiva === 'geral') {
+    tabs.contentGeral.classList.remove('hidden');
+    tabs.contentAmpacidade.classList.add('hidden');
+
+    tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
+    tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
+  } else if (abaAtiva === 'ampacidade') {
+    tabs.contentGeral.classList.add('hidden');
+    tabs.contentAmpacidade.classList.remove('hidden');
+
+    tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
+    tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
+  }
+}
+
+if (tabs.btnGeral && tabs.btnAmpacidade) {
+  tabs.btnGeral.addEventListener('click', () => alternarAba('geral'));
+  tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
+}
 
 // Execução inicial
 atualizarCalculo();
