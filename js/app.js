@@ -4,7 +4,7 @@
 // ==============================================================================
 
 import { dimensionarCircuito } from './engine.js';
-import { TABELA_36_PVC, TABELA_37_XLPE } from './tables.js';
+import { TABELA_36_PVC, TABELA_37_XLPE, FCT_PVC, FCT_XLPE, FCA_A_F, FCR_SOLO } from './tables.js';
 
 // ==============================================================================
 // 1. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 1: GERAL)
@@ -54,7 +54,7 @@ const presets = {
 };
 
 // ==============================================================================
-// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE, MOTORES & CAPACITORES)
+// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE & CORREÇÕES)
 // ==============================================================================
 let ampTipoAplicacao = 'geral'; // 'geral', 'motor' ou 'capacitor'
 
@@ -84,7 +84,11 @@ const ampInputs = {
   rendimento: document.getElementById('amp-rendimento'),
   fs: document.getElementById('amp-fs'),
   metodo: document.getElementById('amp-metodo'),
-  isolacao: document.getElementById('amp-isolacao')
+  isolacao: document.getElementById('amp-isolacao'),
+  // Fatores de Correção
+  corrTemp: document.getElementById('amp-corr-temp'),
+  corrAgrup: document.getElementById('amp-corr-agrup'),
+  corrSolo: document.getElementById('amp-corr-solo')
 };
 
 const ampOutputs = {
@@ -95,7 +99,17 @@ const ampOutputs = {
   in: document.getElementById('amp-res-in'),
   ib: document.getElementById('amp-res-ib'),
   margem: document.getElementById('amp-res-margem'),
-  formulaBox: document.getElementById('amp-res-formula-box')
+  formulaBox: document.getElementById('amp-res-formula-box'),
+  // Saídas da Correção
+  fatorTotalBadge: document.getElementById('amp-fator-total-badge'),
+  caboOrig: document.getElementById('amp-corr-cabo-orig'),
+  izOrig: document.getElementById('amp-corr-iz-orig'),
+  izDegradado: document.getElementById('amp-corr-iz-degradado'),
+  statusCaboOrig: document.getElementById('amp-corr-status-cabo-orig'),
+  badgeMudanca: document.getElementById('amp-corr-badge-mudanca'),
+  secaoFinal: document.getElementById('amp-corr-secao-final'),
+  izInstalado: document.getElementById('amp-corr-iz-instalado'),
+  explicacao: document.getElementById('amp-corr-explicacao')
 };
 
 const tabs = {
@@ -176,7 +190,7 @@ function atualizarCalculoGeral() {
 }
 
 // ==============================================================================
-// 4. CÁLCULO DA ABA 2: AMPACIDADE (GERAL, MOTORES & BANCO DE CAPACITORES)
+// 4. CÁLCULO DA ABA 2: AMPACIDADE (DIRETA + CORREÇÃO AMBIENTAL)
 // ==============================================================================
 function atualizarCalculoAmpacidade() {
   if (!ampInputs.tensao) return;
@@ -192,11 +206,10 @@ function atualizarCalculoAmpacidade() {
 
   const motorInputType = document.querySelector('input[name="amp-motor-input-type"]:checked')?.value || 'potencia';
 
+  // --- CÁLCULO DA CORRENTE NOMINAL E DE PROJETO (Ib) ---
   if (ampTipoAplicacao === 'geral') {
-    // CARGA GERAL
     const P = parseFloat(ampInputs.potencia.value) || 0;
     const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
-
     if (P <= 0 || V <= 0 || cosPhi <= 0) return;
 
     if (sistema === 'trifasico') {
@@ -209,7 +222,6 @@ function atualizarCalculoAmpacidade() {
     ib = inNominal;
 
   } else if (ampTipoAplicacao === 'motor') {
-    // MOTOR ELÉTRICO
     const fs = parseFloat(ampInputs.fs.value) || 1.0;
 
     if (motorInputType === 'corrente') {
@@ -239,7 +251,6 @@ function atualizarCalculoAmpacidade() {
     }
 
   } else if (ampTipoAplicacao === 'capacitor') {
-    // BANCO DE CAPACITORES (+35% SOBRECORRENTE)
     let qVal = parseFloat(ampInputs.potenciaReativa.value) || 0;
     const unidadeReativa = ampInputs.unidadeReativa.value;
     const qVar = unidadeReativa === 'kvar' ? qVal * 1000 : qVal;
@@ -249,44 +260,39 @@ function atualizarCalculoAmpacidade() {
     if (sistema === 'trifasico') {
       inNominal = qVar / (Math.sqrt(3) * V);
       ib = inNominal * 1.35;
-      formulaTexto = `In = Q / (√3 · V) = ${qVar.toFixed(0)} var / (1.732 · ${V} V) = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos/Sobretensão) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
+      formulaTexto = `In = Q / (√3 · V) = ${qVar.toFixed(0)} var / (1.732 · ${V} V) = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
     } else {
       inNominal = qVar / V;
       ib = inNominal * 1.35;
-      formulaTexto = `In = Q / V = ${qVar.toFixed(0)} var / ${V} V = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos/Sobretensão) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
+      formulaTexto = `In = Q / V = ${qVar.toFixed(0)} var / ${V} V = ${inNominal.toFixed(2)} A <br><span class="text-upe-red font-bold">➔ Ib = 1.35 · In (+35% Harmônicos) = 1.35 · ${inNominal.toFixed(2)} = <strong>${ib.toFixed(2)} A</strong></span>`;
     }
   }
 
-  // Consulta na Tabela da NBR 5410 (Iz >= Ib)
+  // --- SELEÇÃO DO CABO INICIAL (SEM CORREÇÃO: Iz >= Ib) ---
   const tabela = isolacao === 'PVC' ? TABELA_36_PVC : TABELA_37_XLPE;
   const condKey = sistema === 'trifasico' ? 'n3' : 'n2';
 
-  let condutorEncontrado = null;
-
+  let condutorSemCorr = null;
   for (let i = 0; i < tabela.length; i++) {
     const item = tabela[i];
-    const capacidade = item[metodo] ? item[metodo][condKey] : undefined;
-
-    if (capacidade !== undefined && capacidade >= ib) {
-      condutorEncontrado = {
-        secao: item.secao,
-        iz: capacidade
-      };
+    const cap = item[metodo] ? item[metodo][condKey] : undefined;
+    if (cap !== undefined && cap >= ib) {
+      condutorSemCorr = { secao: item.secao, iz: cap };
       break;
     }
   }
 
-  // Atualização Visual
+  // Atualização dos Resultados Sem Correção
   ampOutputs.in.textContent = inNominal.toFixed(2);
   ampOutputs.ib.textContent = ib.toFixed(2);
   ampOutputs.formulaBox.innerHTML = formulaTexto;
   ampOutputs.metodoBadge.textContent = `${metodo} / ${condKey === 'n3' ? '3 Cond.' : '2 Cond.'}`;
   ampOutputs.isolacaoLabel.textContent = `Cobre / ${isolacao === 'PVC' ? 'PVC 70°C (Tab. 36)' : 'XLPE/EPR 90°C (Tab. 37)'}`;
 
-  if (condutorEncontrado) {
-    const margem = condutorEncontrado.iz - ib;
-    ampOutputs.secao.textContent = condutorEncontrado.secao;
-    ampOutputs.iz.textContent = condutorEncontrado.iz.toFixed(1);
+  if (condutorSemCorr) {
+    const margem = condutorSemCorr.iz - ib;
+    ampOutputs.secao.textContent = condutorSemCorr.secao;
+    ampOutputs.iz.textContent = condutorSemCorr.iz.toFixed(1);
     ampOutputs.margem.textContent = `+${margem.toFixed(2)}`;
     ampOutputs.margem.className = 'text-base font-black font-mono text-emerald-700';
   } else {
@@ -294,6 +300,74 @@ function atualizarCalculoAmpacidade() {
     ampOutputs.iz.textContent = '--';
     ampOutputs.margem.textContent = 'Sobrecarga';
     ampOutputs.margem.className = 'text-xs font-bold font-mono text-upe-red';
+  }
+
+  // ============================================================================
+  // CÁLCULO DA PARTE DE CORREÇÃO (FCT, FCA, FCR)
+  // ============================================================================
+  const tempVal = parseInt(ampInputs.corrTemp.value, 10) || 30;
+  const agrupVal = parseInt(ampInputs.corrAgrup.value, 10) || 1;
+  const soloVal = parseFloat(ampInputs.corrSolo.value) || 2.5;
+
+  const fct = (isolacao === 'PVC' ? FCT_PVC[tempVal] : FCT_XLPE[tempVal]) || 1.0;
+  const fca = FCA_A_F[agrupVal] || 1.0;
+  const fcr = metodo === 'D' ? (FCR_SOLO[soloVal] || 1.0) : 1.0; // Solo só atua no Método D
+
+  const fTotal = fct * fca * fcr;
+  ampOutputs.fatorTotalBadge.textContent = `Ftotal = ${fTotal.toFixed(3)} (FCT: ${fct.toFixed(2)} | FCA: ${fca.toFixed(2)}${metodo === 'D' ? ` | FCR: ${fcr.toFixed(2)}` : ''})`;
+
+  if (condutorSemCorr) {
+    // 1. Efeito da degradação no cabo inicial
+    const izDegradado = condutorSemCorr.iz * fTotal;
+    ampOutputs.caboOrig.textContent = `${condutorSemCorr.secao} mm²`;
+    ampOutputs.izOrig.textContent = `${condutorSemCorr.iz.toFixed(1)} A`;
+    ampOutputs.izDegradado.textContent = `${izDegradado.toFixed(1)} A`;
+
+    if (izDegradado >= ib) {
+      ampOutputs.statusCaboOrig.className = 'p-2 rounded text-[11px] font-mono font-bold text-center bg-emerald-50 text-emerald-700 border border-emerald-200';
+      ampOutputs.statusCaboOrig.textContent = `✔ Mantém capacidade (Iz real ${izDegradado.toFixed(1)}A ≥ Ib ${ib.toFixed(1)}A)`;
+    } else {
+      ampOutputs.statusCaboOrig.className = 'p-2 rounded text-[11px] font-mono font-bold text-center bg-red-50 text-upe-red border border-red-200';
+      ampOutputs.statusCaboOrig.textContent = `✖ Reprovado por Fator Térmico (${izDegradado.toFixed(1)}A < Ib ${ib.toFixed(1)}A)`;
+    }
+
+    // 2. Busca do Condutor Final Corrigido (Iz_tabela >= Ib / Ftotal)
+    const izNecessarioCatalogo = ib / fTotal;
+    let condutorCorrigido = null;
+
+    for (let i = 0; i < tabela.length; i++) {
+      const item = tabela[i];
+      const cap = item[metodo] ? item[metodo][condKey] : undefined;
+      if (cap !== undefined && cap >= izNecessarioCatalogo) {
+        condutorCorrigido = {
+          secao: item.secao,
+          izNominal: cap,
+          izInstalado: cap * fTotal
+        };
+        break;
+      }
+    }
+
+    if (condutorCorrigido) {
+      ampOutputs.secaoFinal.textContent = condutorCorrigido.secao;
+      ampOutputs.izInstalado.textContent = `${condutorCorrigido.izInstalado.toFixed(1)} A`;
+
+      if (condutorCorrigido.secao > condutorSemCorr.secao) {
+        ampOutputs.badgeMudanca.className = 'text-[10px] font-bold px-2 py-0.5 rounded font-mono bg-upe-red text-white';
+        ampOutputs.badgeMudanca.textContent = `Bitola Elevada: ${condutorSemCorr.secao} ➔ ${condutorCorrigido.secao} mm²`;
+      } else {
+        ampOutputs.badgeMudanca.className = 'text-[10px] font-bold px-2 py-0.5 rounded font-mono bg-emerald-700 text-white';
+        ampOutputs.badgeMudanca.textContent = 'Bitola Mantida';
+      }
+
+      ampOutputs.explicacao.innerHTML = `Condutor selecionado: <strong>${condutorCorrigido.secao} mm²</strong> (Capacidade nominal: ${condutorCorrigido.izNominal} A × ${fTotal.toFixed(3)} = <strong>${condutorCorrigido.izInstalado.toFixed(1)} A instalada</strong>).`;
+    } else {
+      ampOutputs.secaoFinal.textContent = '> 240';
+      ampOutputs.izInstalado.textContent = '--';
+      ampOutputs.badgeMudanca.className = 'text-[10px] font-bold px-2 py-0.5 rounded font-mono bg-upe-red text-white';
+      ampOutputs.badgeMudanca.textContent = 'Sobrecarga Normativa';
+      ampOutputs.explicacao.innerHTML = `Nenhum condutor padrão até 240 mm² suporta a corrente corrigida requerida de <strong>${izNecessarioCatalogo.toFixed(2)} A</strong>. Divida em condutores em paralelo.`;
+    }
   }
 }
 
@@ -385,7 +459,7 @@ Object.values(inputs).forEach(input => {
   }
 });
 
-// Aba 2
+// Aba 2 (Inputs principais e Fatores de Correção)
 Object.values(ampInputs).forEach(input => {
   if (input) {
     input.addEventListener('input', atualizarCalculoAmpacidade);

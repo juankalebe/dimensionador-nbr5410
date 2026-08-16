@@ -343,7 +343,7 @@
 
     </div>
 
-    <!-- ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA) -->
+    <!-- ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA & CORREÇÕES) -->
     <div id="tab-content-ampacidade" class="hidden space-y-6">
 
       <!-- SELETOR DE TIPO DE CARGA (3 MODOS) -->
@@ -368,7 +368,7 @@
         </span>
       </div>
 
-      <!-- GRID PRINCIPAL -->
+      <!-- GRID PRINCIPAL: ENTRADAS x RESULTADO DIRETO (SEM CORREÇÃO) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- COLUNA DE ENTRADAS -->
@@ -377,7 +377,7 @@
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 class="text-xs font-bold uppercase tracking-wider text-upe-blue flex items-center gap-2 border-b border-slate-100 pb-2.5">
               <span class="flex h-5 w-5 rounded-full bg-upe-red text-white text-[11px] items-center justify-center font-bold">1</span>
-              Parâmetros de Entrada
+              Parâmetros Básicos do Circuito
             </h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -455,7 +455,7 @@
                     <option value="var">var</option>
                   </select>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-1">Acresce automaticamente +35% de sobrecorrente para harmônicos ($I_b = 1{,}35 \cdot I_n$).</p>
+                <p class="text-[11px] text-slate-500 mt-1">Acresce automaticamente +35% de sobrecorrente para harmônicos (Ib = 1,35 · In).</p>
               </div>
 
               <!-- Rendimento (Motor) -->
@@ -497,7 +497,7 @@
 
         </div>
 
-        <!-- COLUNA DE RESULTADOS -->
+        <!-- COLUNA DE RESULTADOS DIRETOS (SEM CORREÇÃO) -->
         <div class="lg:col-span-6 space-y-5">
 
           <!-- CARDS: CONDUTOR & CAPACIDADE -->
@@ -505,7 +505,7 @@
             
             <div class="bg-white border-2 border-upe-blue rounded-xl p-5 shadow-md relative overflow-hidden">
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">Condutor Recomendado</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">Cabo Inicial (Sem Correção)</span>
                 <span id="amp-res-metodo-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-upe-blueLight text-upe-blue font-mono">B1 / 3C</span>
               </div>
               <div class="flex items-baseline gap-2 mt-2">
@@ -521,7 +521,7 @@
             <div class="bg-white border-2 border-slate-300 rounded-xl p-5 shadow-md relative overflow-hidden">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Capacidade Nominal (Iz)</span>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">Sem Correção</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">Catálogo</span>
               </div>
               <div class="flex items-baseline gap-2 mt-2">
                 <span id="amp-res-iz" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono tracking-tight">--</span>
@@ -535,7 +535,7 @@
 
           </div>
 
-          <!-- DIAGNÓSTICO DAS CORRENTES -->
+          <!-- DIAGNÓSTICO DAS CORRENTES BÁSICAS -->
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
             <h3 class="text-xs font-bold uppercase tracking-wider text-upe-blue border-b border-slate-100 pb-2">
               Correntes de Dimensionamento
@@ -580,6 +580,126 @@
         </div>
 
       </div>
+
+      <!-- ==================================================================== -->
+      <!-- SEÇÃO INFERIOR: FATORES DE CORREÇÃO E AMPACIDADE CORRIGIDA -->
+      <!-- ==================================================================== -->
+      <section class="bg-white border-2 border-slate-300 rounded-2xl p-6 shadow-md space-y-6">
+        
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 rounded-md bg-upe-blue text-white text-xs font-black items-center justify-center">∑</span>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-upe-blue">
+              Fatores de Correção Ambiental & Dimensionamento Final
+            </h3>
+          </div>
+          <span id="amp-fator-total-badge" class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-upe-blueLight text-upe-blue border border-upe-blue/30">
+            Fator Total = 1.000
+          </span>
+        </div>
+
+        <!-- 3 ENTRADAS DE FATORES DE CORREÇÃO -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          <!-- 1. Temperatura -->
+          <div>
+            <label for="amp-corr-temp" class="block text-xs font-bold text-slate-700 mb-1">Temperatura Ambiente</label>
+            <select id="amp-corr-temp" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 transition outline-none">
+              <option value="10">10 °C</option>
+              <option value="15">15 °C</option>
+              <option value="20">20 °C</option>
+              <option value="25">25 °C</option>
+              <option value="30" selected>30 °C (Ref. FCT = 1.00)</option>
+              <option value="35">35 °C</option>
+              <option value="40">40 °C</option>
+              <option value="45">45 °C</option>
+              <option value="50">50 °C</option>
+              <option value="55">55 °C</option>
+              <option value="60">60 °C</option>
+            </select>
+          </div>
+
+          <!-- 2. Agrupamento -->
+          <div>
+            <label for="amp-corr-agrup" class="block text-xs font-bold text-slate-700 mb-1">Circuitos Agrupados (FCA)</label>
+            <select id="amp-corr-agrup" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 transition outline-none">
+              <option value="1" selected>1 Circuito (FCA = 1.00)</option>
+              <option value="2">2 Circuitos (FCA = 0.80)</option>
+              <option value="3">3 Circuitos (FCA = 0.70)</option>
+              <option value="4">4 Circuitos (FCA = 0.65)</option>
+              <option value="5">5 Circuitos (FCA = 0.60)</option>
+              <option value="6">6 Circuitos (FCA = 0.57)</option>
+              <option value="7">7 Circuitos (FCA = 0.54)</option>
+              <option value="8">8 Circuitos (FCA = 0.52)</option>
+              <option value="9">9+ Circuitos (FCA = 0.50)</option>
+            </select>
+          </div>
+
+          <!-- 3. Resistividade Térmica do Solo -->
+          <div>
+            <label for="amp-corr-solo" class="block text-xs font-bold text-slate-700 mb-1">Resistividade do Solo (FCR)</label>
+            <select id="amp-corr-solo" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white rounded-lg px-3 py-2 text-xs font-mono font-bold text-slate-900 transition outline-none">
+              <option value="1.0">1.0 K·m/W (FCR = 1.18)</option>
+              <option value="1.5">1.5 K·m/W (FCR = 1.10)</option>
+              <option value="2.0">2.0 K·m/W (FCR = 1.05)</option>
+              <option value="2.5" selected>2.5 K·m/W (Ref. FCR = 1.00)</option>
+              <option value="3.0">3.0 K·m/W (FCR = 0.96)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- RESULTADOS COMPARATIVOS: CABO INICIAL vs CABO CORRIGIDO -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+          
+          <!-- Card de Degradação do Cabo Inicial -->
+          <div class="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2.5">
+            <span class="text-xs font-bold text-slate-600 block uppercase tracking-wider">
+              1. Efeito da Correção no Cabo Inicial
+            </span>
+            <div class="flex items-baseline justify-between border-b border-slate-200 pb-2">
+              <span class="text-xs text-slate-500">Bitola Inicial sem correção:</span>
+              <span id="amp-corr-cabo-orig" class="text-base font-bold font-mono text-slate-900">-- mm²</span>
+            </div>
+            <div class="flex items-baseline justify-between border-b border-slate-200 pb-2">
+              <span class="text-xs text-slate-500">Capacidade de Catálogo:</span>
+              <span id="amp-corr-iz-orig" class="text-sm font-bold font-mono text-slate-700">-- A</span>
+            </div>
+            <div class="flex items-baseline justify-between pt-1">
+              <span class="text-xs font-bold text-slate-800">Nova Capacidade Degradada:</span>
+              <span id="amp-corr-iz-degradado" class="text-lg font-black font-mono text-upe-red">-- A</span>
+            </div>
+            <div id="amp-corr-status-cabo-orig" class="p-2 rounded text-[11px] font-mono font-bold text-center">
+              Aguardando...
+            </div>
+          </div>
+
+          <!-- Card do Condutor Final Necessário -->
+          <div class="lg:col-span-7 bg-gradient-to-br from-white to-blue-50/50 border-2 border-upe-blue rounded-xl p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">2. Condutor Corrigido Recomendado</span>
+              <span id="amp-corr-badge-mudanca" class="text-[10px] font-bold px-2 py-0.5 rounded font-mono bg-upe-blue text-white">
+                Verificado
+              </span>
+            </div>
+
+            <div class="flex items-baseline gap-3">
+              <span id="amp-corr-secao-final" class="text-4xl sm:text-5xl font-black font-mono text-slate-900">--</span>
+              <span class="text-lg font-bold text-slate-500">mm²</span>
+              <div class="ml-auto text-right">
+                <span class="text-[11px] text-slate-500 block">Capacidade Real Instalada</span>
+                <span id="amp-corr-iz-instalado" class="text-xl font-black font-mono text-emerald-700">-- A</span>
+              </div>
+            </div>
+
+            <p id="amp-corr-explicacao" class="text-xs font-mono text-slate-700 bg-white p-3 rounded-lg border border-slate-200 leading-relaxed">
+              Calculando...
+            </p>
+          </div>
+
+        </div>
+
+      </section>
 
     </div>
 
