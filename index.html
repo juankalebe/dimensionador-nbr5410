@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-950">
+<html lang="pt-BR" class="h-full bg-slate-50">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,8 +18,7 @@
               blue: '#1C3C78',
               blueHover: '#152e5d',
               blueLight: '#264f9b',
-              surface: '#0f172a',
-              card: '#1e293b'
+              neutral: '#231F20'
             }
           },
           fontFamily: {
@@ -30,28 +29,28 @@
     }
   </script>
 </head>
-<body class="min-h-full bg-slate-950 text-slate-100 flex flex-col font-sans antialiased selection:bg-upe-red selection:text-white">
+<body class="min-h-full bg-slate-50 text-slate-800 flex flex-col font-sans antialiased selection:bg-upe-red selection:text-white">
 
   <!-- CABEÇALHO INSTITUCIONAL -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+  <header class="border-b border-slate-200 bg-white sticky top-0 z-30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
       <div class="flex items-center gap-3.5">
-        <!-- Ícone / Brasão com cores UPE -->
-        <div class="h-10 w-10 rounded-xl bg-upe-blue border border-upe-blueLight flex items-center justify-center text-white font-black text-xl shadow-md">
+        <!-- Brasão UPE -->
+        <div class="h-10 w-10 rounded-xl bg-upe-blue border border-upe-blueLight flex items-center justify-center text-white font-black text-xl shadow-sm">
           <span class="text-upe-red">U</span><span class="text-white">PE</span>
         </div>
         <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 flex items-center gap-2">
             Dimensionamento Elétrico NBR 5410
             <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-upe-red/10 text-upe-red border border-upe-red/20">POLI</span>
           </h1>
-          <p class="text-xs text-slate-400">Universidade de Pernambuco • Condutores e Dispositivos de Proteção</p>
+          <p class="text-xs text-slate-500">Universidade de Pernambuco • Condutores e Dispositivos de Proteção</p>
         </div>
       </div>
       
-      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
         <span class="w-2 h-2 rounded-full bg-upe-red animate-pulse"></span>
-        Norma NBR 5410:2004
+        NBR 5410:2004
       </div>
     </div>
   </header>
@@ -60,12 +59,12 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- PRESETS RÁPIDOS -->
-    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center gap-2">
-      <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Casos Rápidos:</span>
-      <button type="button" id="preset-chuveiro" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-upe-blue text-slate-200 hover:text-white border border-slate-700 transition">🚿 Chuveiro 7500W</button>
-      <button type="button" id="preset-ar" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-upe-blue text-slate-200 hover:text-white border border-slate-700 transition">❄️ Ar-Condicionado 12k</button>
-      <button type="button" id="preset-tugs" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-upe-blue text-slate-200 hover:text-white border border-slate-700 transition">🔌 Tomadas Cozinha</button>
-      <button type="button" id="preset-ilum" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-upe-blue text-slate-200 hover:text-white border border-slate-700 transition">💡 Iluminação Geral</button>
+    <section class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center gap-2 shadow-sm">
+      <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2">Casos Rápidos:</span>
+      <button type="button" id="preset-chuveiro" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-upe-blue text-slate-700 hover:text-white border border-slate-200 transition">🚿 Chuveiro 7500W</button>
+      <button type="button" id="preset-ar" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-upe-blue text-slate-700 hover:text-white border border-slate-200 transition">❄️ Ar-Condicionado 12k</button>
+      <button type="button" id="preset-tugs" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-upe-blue text-slate-700 hover:text-white border border-slate-200 transition">🔌 Tomadas Cozinha</button>
+      <button type="button" id="preset-ilum" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-upe-blue text-slate-700 hover:text-white border border-slate-200 transition">💡 Iluminação Geral</button>
     </section>
 
     <!-- GRID: FORMULÁRIO (ESQUERDA) x RESULTADOS (DIREITA) -->
@@ -75,20 +74,20 @@
       <div class="lg:col-span-6 space-y-5">
         
         <!-- Bloco 1: Carga -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2 border-b border-slate-100 pb-2.5">
             <span class="text-upe-red font-black">1.</span> Dados da Carga & Sistema
           </h2>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label for="potencia" class="block text-xs font-medium text-slate-300 mb-1">Potência (W)</label>
-              <input type="number" id="potencia" value="7500" min="1" step="50" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition" />
+              <label for="potencia" class="block text-xs font-medium text-slate-700 mb-1">Potência (W)</label>
+              <input type="number" id="potencia" value="7500" min="1" step="50" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition" />
             </div>
 
             <div>
-              <label for="tensao" class="block text-xs font-medium text-slate-300 mb-1">Tensão (V)</label>
-              <select id="tensao" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition">
+              <label for="tensao" class="block text-xs font-medium text-slate-700 mb-1">Tensão (V)</label>
+              <select id="tensao" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition">
                 <option value="127">127 V</option>
                 <option value="220" selected>220 V</option>
                 <option value="380">380 V</option>
@@ -96,43 +95,43 @@
             </div>
 
             <div>
-              <label for="sistema" class="block text-xs font-medium text-slate-300 mb-1">Sistema</label>
-              <select id="sistema" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white transition">
+              <label for="sistema" class="block text-xs font-medium text-slate-700 mb-1">Sistema</label>
+              <select id="sistema" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 transition">
                 <option value="monofasico" selected>Monofásico / Bifásico (2 cond.)</option>
                 <option value="trifasico">Trifásico (3 cond. carregados)</option>
               </select>
             </div>
 
             <div>
-              <label for="tipoUso" class="block text-xs font-medium text-slate-300 mb-1">Finalidade (Tabela 47)</label>
-              <select id="tipoUso" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white transition">
+              <label for="tipoUso" class="block text-xs font-medium text-slate-700 mb-1">Finalidade (Tabela 47)</label>
+              <select id="tipoUso" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 transition">
                 <option value="forca" selected>Força / Tomadas (mín. 2.5 mm²)</option>
                 <option value="iluminacao">Iluminação (mín. 1.5 mm²)</option>
               </select>
             </div>
 
             <div>
-              <label for="cosPhi" class="block text-xs font-medium text-slate-300 mb-1">Fator de Potência (cos φ)</label>
-              <input type="number" id="cosPhi" value="1.0" min="0.1" max="1.0" step="0.05" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition" />
+              <label for="cosPhi" class="block text-xs font-medium text-slate-700 mb-1">Fator de Potência (cos φ)</label>
+              <input type="number" id="cosPhi" value="1.0" min="0.1" max="1.0" step="0.05" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition" />
             </div>
 
             <div>
-              <label for="rendimento" class="block text-xs font-medium text-slate-300 mb-1">Rendimento (η)</label>
-              <input type="number" id="rendimento" value="1.0" min="0.1" max="1.0" step="0.05" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition" />
+              <label for="rendimento" class="block text-xs font-medium text-slate-700 mb-1">Rendimento (η)</label>
+              <input type="number" id="rendimento" value="1.0" min="0.1" max="1.0" step="0.05" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition" />
             </div>
           </div>
         </div>
 
         <!-- Bloco 2: Instalação -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2.5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2 border-b border-slate-100 pb-2.5">
             <span class="text-upe-red font-black">2.</span> Instalação & Condições Ambientais
           </h2>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label for="temperatura" class="block text-xs font-medium text-slate-300 mb-1">Temperatura Ambiente (°C)</label>
-              <select id="temperatura" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition">
+              <label for="temperatura" class="block text-xs font-medium text-slate-700 mb-1">Temperatura Ambiente (°C)</label>
+              <select id="temperatura" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition">
                 <option value="10">10 °C (FCT = 1.22)</option>
                 <option value="15">15 °C (FCT = 1.17)</option>
                 <option value="20">20 °C (FCT = 1.12)</option>
@@ -148,8 +147,8 @@
             </div>
 
             <div>
-              <label for="numCircuitos" class="block text-xs font-medium text-slate-300 mb-1">Circuitos Agrupados (FCA)</label>
-              <select id="numCircuitos" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition">
+              <label for="numCircuitos" class="block text-xs font-medium text-slate-700 mb-1">Circuitos Agrupados (FCA)</label>
+              <select id="numCircuitos" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition">
                 <option value="1">1 Circuito (FCA = 1.00)</option>
                 <option value="2" selected>2 Circuitos (FCA = 0.80)</option>
                 <option value="3">3 Circuitos (FCA = 0.70)</option>
@@ -163,13 +162,13 @@
             </div>
 
             <div>
-              <label for="comprimento" class="block text-xs font-medium text-slate-300 mb-1">Comprimento do Circuito (m)</label>
-              <input type="number" id="comprimento" value="20" min="1" step="1" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition" />
+              <label for="comprimento" class="block text-xs font-medium text-slate-700 mb-1">Comprimento do Circuito (m)</label>
+              <input type="number" id="comprimento" value="20" min="1" step="1" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition" />
             </div>
 
             <div>
-              <label for="quedaMaxPercent" class="block text-xs font-medium text-slate-300 mb-1">Queda Limite (%)</label>
-              <input type="number" id="quedaMaxPercent" value="4.0" min="0.5" max="10.0" step="0.5" class="w-full bg-slate-950 border border-slate-700 focus:border-upe-blue focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-white font-mono transition" />
+              <label for="quedaMaxPercent" class="block text-xs font-medium text-slate-700 mb-1">Queda Limite (%)</label>
+              <input type="number" id="quedaMaxPercent" value="4.0" min="0.5" max="10.0" step="0.5" class="w-full bg-slate-50 border border-slate-300 focus:border-upe-blue focus:bg-white focus:ring-1 focus:ring-upe-blue rounded-xl px-3 py-2 text-sm text-slate-900 font-mono transition" />
             </div>
           </div>
         </div>
@@ -182,26 +181,26 @@
         <!-- CARDS CABO E DISJUNTOR -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <!-- Cabo -->
-          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-upe-blue rounded-2xl p-5 shadow-2xl relative overflow-hidden">
-            <span class="text-xs font-bold uppercase tracking-wider text-blue-300 block mb-1">Condutor Final</span>
+          <div class="bg-white border-2 border-upe-blue rounded-2xl p-5 shadow-sm relative overflow-hidden">
+            <span class="text-xs font-bold uppercase tracking-wider text-upe-blue block mb-1">Condutor Final</span>
             <div class="flex items-baseline gap-2">
-              <span id="res-secao-final" class="text-4xl sm:text-5xl font-black text-white font-mono">--</span>
-              <span class="text-lg font-bold text-slate-400">mm²</span>
+              <span id="res-secao-final" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono">--</span>
+              <span class="text-lg font-bold text-slate-500">mm²</span>
             </div>
-            <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
-              <span class="w-2 h-2 rounded-full bg-upe-blueLight"></span>
+            <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
+              <span class="w-2 h-2 rounded-full bg-upe-blue"></span>
               Método B1 / Cobre / PVC 70°C
             </p>
           </div>
 
           <!-- Disjuntor -->
-          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-upe-red rounded-2xl p-5 shadow-2xl relative overflow-hidden">
-            <span class="text-xs font-bold uppercase tracking-wider text-red-300 block mb-1">Disjuntor Termomagnético</span>
+          <div class="bg-white border-2 border-upe-red rounded-2xl p-5 shadow-sm relative overflow-hidden">
+            <span class="text-xs font-bold uppercase tracking-wider text-upe-red block mb-1">Disjuntor Termomagnético</span>
             <div class="flex items-baseline gap-2">
-              <span id="res-disjuntor" class="text-4xl sm:text-5xl font-black text-white font-mono">--</span>
-              <span class="text-lg font-bold text-slate-400">A</span>
+              <span id="res-disjuntor" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono">--</span>
+              <span class="text-lg font-bold text-slate-500">A</span>
             </div>
-            <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5 font-medium">
+            <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5 font-medium">
               <span class="w-2 h-2 rounded-full bg-upe-red"></span>
               Norma NBR NM 60898
             </p>
@@ -209,8 +208,8 @@
         </div>
 
         <!-- TELEMETRIA ELÉTRICA -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center justify-between border-b border-slate-100 pb-2.5">
             <span>Verificação e Telemetria</span>
             <span id="res-criterio-badge" class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-upe-blue text-white">
               Critério: --
@@ -218,21 +217,21 @@
           </h2>
 
           <div class="grid grid-cols-3 gap-3 text-center">
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
-              <span class="text-[11px] text-slate-400 block mb-1">Corrente Ib</span>
-              <span id="res-ib" class="text-base sm:text-lg font-bold font-mono text-white">--</span>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+              <span class="text-[11px] text-slate-500 block mb-1">Corrente Ib</span>
+              <span id="res-ib" class="text-base sm:text-lg font-bold font-mono text-slate-900">--</span>
               <span class="text-xs text-slate-500">A</span>
             </div>
 
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
-              <span class="text-[11px] text-slate-400 block mb-1">Corrente Iz'</span>
-              <span id="res-iz-nec" class="text-base sm:text-lg font-bold font-mono text-amber-400">--</span>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+              <span class="text-[11px] text-slate-500 block mb-1">Corrente Iz'</span>
+              <span id="res-iz-nec" class="text-base sm:text-lg font-bold font-mono text-amber-600">--</span>
               <span class="text-xs text-slate-500">A</span>
             </div>
 
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5">
-              <span class="text-[11px] text-slate-400 block mb-1">Capacidade Iz</span>
-              <span id="res-iz-real" class="text-base sm:text-lg font-bold font-mono text-emerald-400">--</span>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+              <span class="text-[11px] text-slate-500 block mb-1">Capacidade Iz</span>
+              <span id="res-iz-real" class="text-base sm:text-lg font-bold font-mono text-emerald-600">--</span>
               <span class="text-xs text-slate-500">A</span>
             </div>
           </div>
@@ -240,12 +239,12 @@
           <!-- Barra de Queda -->
           <div class="space-y-1.5 pt-1">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-medium text-slate-300">Queda de Tensão Real:</span>
-              <span class="font-mono font-bold text-slate-200">
+              <span class="font-medium text-slate-700">Queda de Tensão Real:</span>
+              <span class="font-mono font-bold text-slate-900">
                 <span id="res-queda-percent">--</span>% (<span id="res-queda-volts">--</span> V)
               </span>
             </div>
-            <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden p-0.5">
+            <div class="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden p-0.5">
               <div id="res-queda-bar" class="h-full bg-upe-blue rounded-full transition-all duration-500" style="width: 0%"></div>
             </div>
             <div class="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -265,44 +264,44 @@
     </div>
 
     <!-- MEMORIAL DE CÁLCULO PASSO A PASSO -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <section class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
       <details class="group">
-        <summary class="flex items-center justify-between p-4 cursor-pointer select-none bg-slate-900 hover:bg-slate-850 transition">
+        <summary class="flex items-center justify-between p-4 cursor-pointer select-none bg-white hover:bg-slate-50 transition">
           <div class="flex items-center gap-2.5">
             <span class="flex h-6 w-6 items-center justify-center rounded-md bg-upe-red/10 text-upe-red text-xs font-black">∑</span>
-            <h3 class="text-xs sm:text-sm font-bold tracking-tight text-white">Memorial de Cálculo Detalhado (Passo a Passo Normativo)</h3>
+            <h3 class="text-xs sm:text-sm font-bold tracking-tight text-slate-900">Memorial de Cálculo Detalhado (Passo a Passo Normativo)</h3>
           </div>
           <span class="text-xs text-slate-400 group-open:rotate-180 transition-transform duration-300">▼</span>
         </summary>
         
-        <div class="p-5 border-t border-slate-800 bg-slate-950/60 space-y-5 text-xs text-slate-300 font-mono">
+        <div class="p-5 border-t border-slate-100 bg-slate-50/70 space-y-5 text-xs text-slate-700 font-mono">
           
           <div class="space-y-1">
             <h4 class="text-[11px] font-bold text-upe-red uppercase tracking-wider">1. Corrente de Projeto (Ib)</h4>
-            <p id="mem-ib" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">--</p>
+            <p id="mem-ib" class="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-800 shadow-sm">--</p>
           </div>
 
           <div class="space-y-1">
             <h4 class="text-[11px] font-bold text-upe-red uppercase tracking-wider">2. Fatores de Correção e Corrente Corrigida (Iz')</h4>
-            <p id="mem-fatores" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">--</p>
+            <p id="mem-fatores" class="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-800 shadow-sm">--</p>
           </div>
 
           <div class="space-y-1">
             <h4 class="text-[11px] font-bold text-upe-red uppercase tracking-wider">3. Critérios de Dimensionamento da Seção</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-0.5">
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <span class="text-slate-400 block mb-0.5 font-sans font-semibold">Critério 1: Seção Mínima</span>
-                <span id="mem-s-min" class="font-bold text-white">-- mm²</span>
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                <span class="text-slate-500 block mb-0.5 font-sans font-semibold">Critério 1: Seção Mínima</span>
+                <span id="mem-s-min" class="font-bold text-slate-900">-- mm²</span>
                 <p class="text-[10px] text-slate-500 mt-0.5">Tabela 47</p>
               </div>
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <span class="text-slate-400 block mb-0.5 font-sans font-semibold">Critério 2: Condução (Iz')</span>
-                <span id="mem-s-cond" class="font-bold text-white">-- mm²</span>
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                <span class="text-slate-500 block mb-0.5 font-sans font-semibold">Critério 2: Condução (Iz')</span>
+                <span id="mem-s-cond" class="font-bold text-slate-900">-- mm²</span>
                 <p class="text-[10px] text-slate-500 mt-0.5">Tabela 36 (Método B1)</p>
               </div>
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <span class="text-slate-400 block mb-0.5 font-sans font-semibold">Critério 3: Queda de Tensão</span>
-                <span id="mem-s-queda" class="font-bold text-white">-- mm²</span>
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                <span class="text-slate-500 block mb-0.5 font-sans font-semibold">Critério 3: Queda de Tensão</span>
+                <span id="mem-s-queda" class="font-bold text-slate-900">-- mm²</span>
                 <p id="mem-s-queda-calc" class="text-[10px] text-slate-500 mt-0.5">Calculada: -- mm²</p>
               </div>
             </div>
@@ -310,7 +309,7 @@
 
           <div class="space-y-1">
             <h4 class="text-[11px] font-bold text-upe-red uppercase tracking-wider">4. Coordenação da Proteção (Ib ≤ In ≤ Iz_real)</h4>
-            <p id="mem-protecao" class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-slate-300">--</p>
+            <p id="mem-protecao" class="bg-white p-2.5 rounded-lg border border-slate-200 text-slate-800 shadow-sm">--</p>
           </div>
 
         </div>
@@ -320,7 +319,7 @@
   </main>
 
   <!-- RODAPÉ INSTITUCIONAL -->
-  <footer class="border-t border-slate-800 bg-slate-900/80 py-4 text-center text-xs text-slate-400">
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
     <p>Universidade de Pernambuco (UPE) • Escola Politécnica de Pernambuco (POLI)</p>
   </footer>
 
