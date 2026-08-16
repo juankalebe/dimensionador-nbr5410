@@ -102,11 +102,11 @@ function atualizarCalculo() {
 
   // Status da Proteção
   if (res.disjuntor !== null) {
-    outputs.statusProtecao.className = 'p-3 rounded-xl border text-xs font-mono transition-colors bg-upe-blue/15 border-upe-blue/40 text-blue-200';
-    outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
+    outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-blue-50 border-blue-200 text-[#1C3C78]';
+    outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
   } else {
-    outputs.statusProtecao.className = 'p-3 rounded-xl border text-xs font-mono transition-colors bg-upe-red/15 border-upe-red/40 text-red-200';
-    outputs.statusProtecao.innerHTML = `✖ <strong>Proteção Incompatível:</strong> Nenhum disjuntor padrão atende Ib (${res.ib.toFixed(1)} A) ≤ In ≤ Iz_real (${res.izRealInstalado.toFixed(1)} A).`;
+    outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-red-50 border-red-200 text-[#ED232A]';
+    outputs.statusProtecao.innerHTML = `✖ <strong>Proteção Incompatível:</strong> Nenhum disjuntor comercial atende Ib (${res.ib.toFixed(1)} A) ≤ In ≤ Iz_real (${res.izRealInstalado.toFixed(1)} A).`;
   }
 
   // Memorial de Cálculo
