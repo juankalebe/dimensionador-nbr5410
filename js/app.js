@@ -4,10 +4,11 @@
 // ==============================================================================
 
 import { dimensionarCircuito } from './engine.js';
+import { TABELA_36_PVC, TABELA_37_XLPE } from './tables.js';
 
-// ------------------------------------------------------------------------------
-// 1. MAPEAMENTO DOS ELEMENTOS DO DOM
-// ------------------------------------------------------------------------------
+// ==============================================================================
+// 1. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 1: GERAL)
+// ==============================================================================
 const inputs = {
   potencia: document.getElementById('potencia'),
   tensao: document.getElementById('tensao'),
@@ -52,6 +53,29 @@ const presets = {
   ilum: document.getElementById('preset-ilum')
 };
 
+// ==============================================================================
+// 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE)
+// ==============================================================================
+const ampInputs = {
+  potencia: document.getElementById('amp-potencia'),
+  tensao: document.getElementById('amp-tensao'),
+  sistema: document.getElementById('amp-sistema'),
+  cosPhi: document.getElementById('amp-cosPhi'),
+  metodo: document.getElementById('amp-metodo'),
+  isolacao: document.getElementById('amp-isolacao')
+};
+
+const ampOutputs = {
+  metodoBadge: document.getElementById('amp-res-metodo-badge'),
+  secao: document.getElementById('amp-res-secao'),
+  isolacaoLabel: document.getElementById('amp-res-isolacao-label'),
+  iz: document.getElementById('amp-res-iz'),
+  ib: document.getElementById('amp-res-ib'),
+  margem: document.getElementById('amp-res-margem'),
+  formulaBox: document.getElementById('amp-res-formula-box')
+};
+
+// Gerenciador de Abas
 const tabs = {
   btnGeral: document.getElementById('tab-btn-geral'),
   btnAmpacidade: document.getElementById('tab-btn-ampacidade'),
@@ -59,10 +83,12 @@ const tabs = {
   contentAmpacidade: document.getElementById('tab-content-ampacidade')
 };
 
-// ------------------------------------------------------------------------------
-// 2. FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO REATIVA
-// ------------------------------------------------------------------------------
-function atualizarCalculo() {
+// ==============================================================================
+// 3. CÁLCULO DA ABA 1: DIMENSIONAMENTO GERAL (4 CRITÉRIOS)
+// ==============================================================================
+function atualizarCalculoGeral() {
+  if (!inputs.potencia) return;
+
   const dados = {
     potencia: parseFloat(inputs.potencia.value) || 0,
     tensao: parseFloat(inputs.tensao.value) || 220,
@@ -107,7 +133,7 @@ function atualizarCalculo() {
     outputs.quedaBar.className = 'h-full rounded-full transition-all duration-500 bg-upe-red animate-pulse';
   }
 
-  // Status da Proteção com Contraste Institucional
+  // Status da Proteção
   if (res.disjuntor !== null) {
     outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-blue-50 border-blue-200 text-[#1C3C78]';
     outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
@@ -132,14 +158,93 @@ function atualizarCalculo() {
   memorial.protecao.textContent = `Condição NBR 5410: Ib (${res.ib} A) ≤ In (${res.disjuntor || '--'} A) ≤ Iz_real (${res.izRealInstalado} A). Capacidade instalada: ${res.capacidadeTabela} A × ${res.fTotal.toFixed(3)} = ${res.izRealInstalado} A.`;
 }
 
-// ------------------------------------------------------------------------------
-// 3. LISTENERS E PRESETS
-// ------------------------------------------------------------------------------
+// ==============================================================================
+// 4. CÁLCULO DA ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA)
+// ==============================================================================
+function atualizarCalculoAmpacidade() {
+  if (!ampInputs.potencia) return;
+
+  const P = parseFloat(ampInputs.potencia.value) || 0;
+  const V = parseFloat(ampInputs.tensao.value) || 220;
+  const sistema = ampInputs.sistema.value;
+  const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
+  const metodo = ampInputs.metodo.value;
+  const isolacao = ampInputs.isolacao.value;
+
+  if (P <= 0 || V <= 0 || cosPhi <= 0) return;
+
+  // PASSO 2: CÁLCULO DA CORRENTE DE PROJETO (Ib)
+  let ib = 0;
+  let formulaTexto = '';
+
+  if (sistema === 'trifasico') {
+    ib = P / (Math.sqrt(3) * V * cosPhi);
+    formulaTexto = `Ib = P / (√3 · V · cosφ) = ${P} W / (1.732 · ${V} V · ${cosPhi}) = <strong>${ib.toFixed(2)} A</strong>`;
+  } else {
+    ib = P / (V * cosPhi);
+    formulaTexto = `Ib = P / (V · cosφ) = ${P} W / (${V} V · ${cosPhi}) = <strong>${ib.toFixed(2)} A</strong>`;
+  }
+
+  // PASSO 3: SELEÇÃO DO CONDUTOR (Iz >= Ib)
+  const tabela = isolacao === 'PVC' ? TABELA_36_PVC : TABELA_37_XLPE;
+  const condKey = sistema === 'trifasico' ? 'n3' : 'n2';
+
+  let condutorEncontrado = null;
+
+  for (let i = 0; i < tabela.length; i++) {
+    const item = tabela[i];
+    const capacidade = item[metodo] ? item[metodo][condKey] : undefined;
+
+    if (capacidade !== undefined && capacidade >= ib) {
+      condutorEncontrado = {
+        secao: item.secao,
+        iz: capacidade
+      };
+      break;
+    }
+  }
+
+  // ATUALIZAÇÃO DA TELA
+  ampOutputs.ib.textContent = ib.toFixed(2);
+  ampOutputs.formulaBox.innerHTML = formulaTexto;
+  ampOutputs.metodoBadge.textContent = `${metodo} / ${condKey === 'n3' ? '3 Cond. Carregados' : '2 Cond. Carregados'}`;
+  ampOutputs.isolacaoLabel.textContent = `Cobre / ${isolacao === 'PVC' ? 'PVC 70°C (Tab. 36)' : 'XLPE/EPR 90°C (Tab. 37)'}`;
+
+  if (condutorEncontrado) {
+    const margem = condutorEncontrado.iz - ib;
+    ampOutputs.secao.textContent = condutorEncontrado.secao;
+    ampOutputs.iz.textContent = condutorEncontrado.iz.toFixed(1);
+    ampOutputs.margem.textContent = `+${margem.toFixed(2)}`;
+    ampOutputs.margem.className = 'text-lg sm:text-xl font-black font-mono text-emerald-700';
+  } else {
+    ampOutputs.secao.textContent = '> 240';
+    ampOutputs.iz.textContent = '--';
+    ampOutputs.margem.textContent = 'Sobrecarga';
+    ampOutputs.margem.className = 'text-sm font-bold font-mono text-upe-red';
+  }
+}
+
+// ==============================================================================
+// 5. EVENT LISTENERS (REATIVIDADE)
+// ==============================================================================
+
+// Listeners da Aba 1 (Geral)
 Object.values(inputs).forEach(input => {
-  input.addEventListener('input', atualizarCalculo);
-  input.addEventListener('change', atualizarCalculo);
+  if (input) {
+    input.addEventListener('input', atualizarCalculoGeral);
+    input.addEventListener('change', atualizarCalculoGeral);
+  }
 });
 
+// Listeners da Aba 2 (Ampacidade)
+Object.values(ampInputs).forEach(input => {
+  if (input) {
+    input.addEventListener('input', atualizarCalculoAmpacidade);
+    input.addEventListener('change', atualizarCalculoAmpacidade);
+  }
+});
+
+// Presets da Aba 1
 function aplicarPreset(config) {
   inputs.potencia.value = config.potencia;
   inputs.tensao.value = config.tensao;
@@ -151,40 +256,48 @@ function aplicarPreset(config) {
   inputs.numCircuitos.value = config.numCircuitos;
   inputs.comprimento.value = config.comprimento;
   inputs.quedaMaxPercent.value = config.quedaMaxPercent;
-  atualizarCalculo();
+  atualizarCalculoGeral();
 }
 
-presets.chuveiro.addEventListener('click', () => {
-  aplicarPreset({
-    potencia: 7500, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
-    cosPhi: 1.0, rendimento: 1.0, temperatura: 35, numCircuitos: 2, comprimento: 18, quedaMaxPercent: 4.0
+if (presets.chuveiro) {
+  presets.chuveiro.addEventListener('click', () => {
+    aplicarPreset({
+      potencia: 7500, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
+      cosPhi: 1.0, rendimento: 1.0, temperatura: 35, numCircuitos: 2, comprimento: 18, quedaMaxPercent: 4.0
+    });
   });
-});
+}
 
-presets.ar.addEventListener('click', () => {
-  aplicarPreset({
-    potencia: 1400, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
-    cosPhi: 0.85, rendimento: 0.90, temperatura: 35, numCircuitos: 1, comprimento: 22, quedaMaxPercent: 4.0
+if (presets.ar) {
+  presets.ar.addEventListener('click', () => {
+    aplicarPreset({
+      potencia: 1400, tensao: 220, sistema: 'monofasico', tipoUso: 'forca',
+      cosPhi: 0.85, rendimento: 0.90, temperatura: 35, numCircuitos: 1, comprimento: 22, quedaMaxPercent: 4.0
+    });
   });
-});
+}
 
-presets.tugs.addEventListener('click', () => {
-  aplicarPreset({
-    potencia: 2200, tensao: 127, sistema: 'monofasico', tipoUso: 'forca',
-    cosPhi: 1.0, rendimento: 1.0, temperatura: 30, numCircuitos: 3, comprimento: 12, quedaMaxPercent: 4.0
+if (presets.tugs) {
+  presets.tugs.addEventListener('click', () => {
+    aplicarPreset({
+      potencia: 2200, tensao: 127, sistema: 'monofasico', tipoUso: 'forca',
+      cosPhi: 1.0, rendimento: 1.0, temperatura: 30, numCircuitos: 3, comprimento: 12, quedaMaxPercent: 4.0
+    });
   });
-});
+}
 
-presets.ilum.addEventListener('click', () => {
-  aplicarPreset({
-    potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao',
-    cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0
+if (presets.ilum) {
+  presets.ilum.addEventListener('click', () => {
+    aplicarPreset({
+      potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao',
+      cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0
+    });
   });
-});
+}
 
-// ------------------------------------------------------------------------------
-// 4. GERENCIADOR DE NAVEGAÇÃO ENTRE ABAS (TABS)
-// ------------------------------------------------------------------------------
+// ==============================================================================
+// 6. GERENCIADOR DE NAVEGAÇÃO ENTRE ABAS (TABS)
+// ==============================================================================
 function alternarAba(abaAtiva) {
   if (abaAtiva === 'geral') {
     tabs.contentGeral.classList.remove('hidden');
@@ -206,5 +319,8 @@ if (tabs.btnGeral && tabs.btnAmpacidade) {
   tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
 }
 
-// Execução inicial
-atualizarCalculo();
+// ==============================================================================
+// 7. INICIALIZAÇÃO AUTOMÁTICA
+// ==============================================================================
+atualizarCalculoGeral();
+atualizarCalculoAmpacidade();

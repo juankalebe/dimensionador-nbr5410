@@ -343,15 +343,162 @@
 
     </div>
 
-    <!-- ABA 2: AMPACIDADE (INICIA OCULTO) -->
+    <!-- ABA 2: AMPACIDADE (CAPACIDADE DE CONDUÇÃO PURA) -->
     <div id="tab-content-ampacidade" class="hidden space-y-6">
-      <div class="bg-white border border-slate-200 rounded-xl p-8 text-center shadow-sm">
-        <div class="h-12 w-12 rounded-xl bg-upe-blueLight text-upe-blue mx-auto flex items-center justify-center text-xl font-bold mb-3">
-          🔥
+
+      <!-- GRID PRINCIPAL: ENTRADAS (ESQUERDA) x RESULTADOS (DIREITA) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- COLUNA DE ENTRADAS (PASSO 1) -->
+        <div class="lg:col-span-6 space-y-5">
+          
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-upe-blue flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <span class="flex h-5 w-5 rounded-full bg-upe-red text-white text-[11px] items-center justify-center font-bold">1</span>
+              Passo 1: Parâmetros do Circuito & Instalação
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              
+              <!-- Potência -->
+              <div>
+                <label for="amp-potencia" class="block text-xs font-bold text-slate-700 mb-1">Potência da Carga (W)</label>
+                <input type="number" id="amp-potencia" value="10000" min="1" step="100" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              </div>
+
+              <!-- Tensão -->
+              <div>
+                <label for="amp-tensao" class="block text-xs font-bold text-slate-700 mb-1">Tensão Nominal (V)</label>
+                <select id="amp-tensao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none">
+                  <option value="127">127 V</option>
+                  <option value="220" selected>220 V</option>
+                  <option value="380">380 V</option>
+                </select>
+              </div>
+
+              <!-- Esquema de Ligação -->
+              <div>
+                <label for="amp-sistema" class="block text-xs font-bold text-slate-700 mb-1">Esquema de Ligação</label>
+                <select id="amp-sistema" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
+                  <option value="monofasico">Monofásico (F + N / 2 cond.)</option>
+                  <option value="bifasico">Bifásico (F + F / 2 cond.)</option>
+                  <option value="trifasico" selected>Trifásico (3F ou 3F+N / 3 cond.)</option>
+                </select>
+              </div>
+
+              <!-- Fator de Potência -->
+              <div>
+                <label for="amp-cosPhi" class="block text-xs font-bold text-slate-700 mb-1">Fator de Potência (cos φ)</label>
+                <input type="number" id="amp-cosPhi" value="0.92" min="0.1" max="1.0" step="0.01" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono transition outline-none" />
+              </div>
+
+              <!-- Método de Instalação (NBR 5410) -->
+              <div class="sm:col-span-2">
+                <label for="amp-metodo" class="block text-xs font-bold text-slate-700 mb-1">Método de Instalação (Tabela 33)</label>
+                <select id="amp-metodo" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-xs text-slate-900 transition outline-none">
+                  <option value="B1" selected>B1 - Condutores isolados em eletroduto embutido em alvenaria</option>
+                  <option value="B2">B2 - Cabo multipolar em eletroduto sobre parede ou embutido</option>
+                  <option value="A1">A1 - Condutores isolados em eletroduto em parede termicamente isolante</option>
+                  <option value="A2">A2 - Cabo multipolar em eletroduto em parede termicamente isolante</option>
+                  <option value="C">C - Cabos unipolares ou multipolar fixados sobre parede/teto</option>
+                  <option value="D">D - Cabos em eletroduto enterrado no solo</option>
+                </select>
+              </div>
+
+              <!-- Tipo de Isolação -->
+              <div class="sm:col-span-2">
+                <label for="amp-isolacao" class="block text-xs font-bold text-slate-700 mb-1">Isolação do Condutor</label>
+                <select id="amp-isolacao" class="w-full bg-white border border-slate-300 focus:border-upe-blue focus:ring-2 focus:ring-upe-blue/15 rounded-lg px-3 py-2 text-sm text-slate-900 transition outline-none">
+                  <option value="PVC" selected>PVC 70 °C (Tabela 36 - NBR 5410)</option>
+                  <option value="XLPE">XLPE / EPR 90 °C (Tabela 37 - NBR 5410)</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
         </div>
-        <h3 class="text-sm font-bold text-upe-blue uppercase tracking-wider mb-1">Módulo de Ampacidade</h3>
-        <p class="text-xs text-slate-500 max-w-md mx-auto">Área dedicada ao cálculo puro da capacidade de condução de corrente por método de instalação, temperatura e agrupamento.</p>
+
+        <!-- COLUNA DE RESULTADOS E NOTAS (PASSOS 2, 3 E 4) -->
+        <div class="lg:col-span-6 space-y-5">
+
+          <!-- CARDS DE RESULTADO: CONDUTOR (PASSO 3) & CORRENTE (PASSO 2) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Card Condutor Selecionado -->
+            <div class="bg-white border-2 border-upe-blue rounded-xl p-5 shadow-md relative overflow-hidden">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">3. Condutor Selecionado</span>
+                <span id="amp-res-metodo-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-upe-blueLight text-upe-blue font-mono">B1 / 3C</span>
+              </div>
+              <div class="flex items-baseline gap-2 mt-2">
+                <span id="amp-res-secao" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono tracking-tight">--</span>
+                <span class="text-lg font-bold text-slate-500">mm²</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-2.5 flex items-center gap-1.5 font-medium border-t border-slate-100 pt-2">
+                <span class="w-2 h-2 rounded-full bg-upe-blue"></span>
+                <span id="amp-res-isolacao-label">Cobre / PVC 70°C</span>
+              </p>
+            </div>
+
+            <!-- Card Capacidade Nominal Iz -->
+            <div class="bg-white border-2 border-slate-300 rounded-xl p-5 shadow-md relative overflow-hidden">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Capacidade Nominal (Iz)</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">Catálogo</span>
+              </div>
+              <div class="flex items-baseline gap-2 mt-2">
+                <span id="amp-res-iz" class="text-4xl sm:text-5xl font-black text-slate-900 font-mono tracking-tight">--</span>
+                <span class="text-lg font-bold text-slate-500">A</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-2.5 flex items-center gap-1.5 font-medium border-t border-slate-100 pt-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                Condição: Iz ≥ Ib
+              </p>
+            </div>
+
+          </div>
+
+          <!-- DIAGNÓSTICO DO CÁLCULO (PASSO 2) -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-upe-blue border-b border-slate-100 pb-2">
+              2. Cálculo da Corrente de Projeto (Ib)
+            </h3>
+
+            <div class="grid grid-cols-2 gap-3 text-center">
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <span class="text-[11px] font-bold text-slate-500 block mb-1">Corrente Calculada (Ib)</span>
+                <span id="amp-res-ib" class="text-lg sm:text-xl font-black font-mono text-slate-900">--</span>
+                <span class="text-xs font-bold text-slate-500">A</span>
+              </div>
+
+              <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <span class="text-[11px] font-bold text-slate-500 block mb-1">Margem Térmica (Iz - Ib)</span>
+                <span id="amp-res-margem" class="text-lg sm:text-xl font-black font-mono text-emerald-700">--</span>
+                <span class="text-xs font-bold text-slate-500">A</span>
+              </div>
+            </div>
+
+            <div id="amp-res-formula-box" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 leading-relaxed">
+              Ib = P / (√3 · V · cosφ)
+            </div>
+          </div>
+
+          <!-- PASSO 4: OBSERVAÇÃO TÉCNICA -->
+          <div class="bg-blue-50/70 border border-upe-blue/30 rounded-xl p-4 text-xs font-medium text-upe-blue flex items-start gap-3">
+            <span class="text-base leading-none">ℹ️</span>
+            <div>
+              <span class="font-bold block uppercase tracking-wider text-[11px] mb-0.5">4. Observação Técnica:</span>
+              <p class="text-slate-700 leading-relaxed">
+                A carga trifásica considerada para cálculo é perfeitamente equilibrada.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
       </div>
+
     </div>
 
   </main>
