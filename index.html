@@ -69,6 +69,9 @@
       <button type="button" id="tab-btn-ampacidade" class="pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition">
         Ampacidade
       </button>
+      <button type="button" id="tab-btn-condutos" class="pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition">
+        Condutos
+      </button>
     </nav>
 
     <!-- ABA 1: DIMENSIONAMENTO GERAL -->
@@ -700,6 +703,130 @@
         </div>
 
       </section>
+
+    </div>
+    <!-- ABA 3: CONDUTOS (ELETRODUTOS E ELETROCALHAS) -->
+    <div id="tab-content-condutos" class="hidden space-y-6">
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- COLUNA ESQUERDA: LISTA DE CABOS -->
+        <div class="lg:col-span-6 space-y-5">
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-upe-blue flex items-center gap-2">
+                <span class="flex h-5 w-5 rounded-full bg-upe-red text-white text-[11px] items-center justify-center font-bold">1</span>
+                Composição do Feixe de Cabos
+              </h2>
+              <button type="button" id="cond-btn-add-cabo" class="px-2.5 py-1 text-xs font-bold bg-upe-blue text-white rounded-lg hover:bg-upe-blueHover transition">
+                + Adicionar Cabo
+              </button>
+            </div>
+
+            <!-- Tabela Dinâmica de Cabos -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs font-mono">
+                <thead>
+                  <tr class="border-b border-slate-200 text-slate-500 font-sans font-bold">
+                    <th class="pb-2">Cabo</th>
+                    <th class="pb-2 text-center">Diâm. (mm)</th>
+                    <th class="pb-2 text-center">Qtd</th>
+                    <th class="pb-2 text-right">Área (mm²)</th>
+                    <th class="pb-2 text-center"></th>
+                  </tr>
+                </thead>
+                <tbody id="cond-tabela-cabos-body" class="divide-y divide-slate-100">
+                  <!-- Linhas inseridas via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Total de Área Ocupada -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center text-xs font-mono">
+              <span class="font-bold text-slate-700 font-sans">Área Total dos Cabos:</span>
+              <span class="font-black text-slate-900 text-sm"><span id="cond-res-area-total">0.00</span> mm² (<span id="cond-res-total-condutores">0</span> condutores)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA: RESULTADOS DE ELETRODUTO E ELETROCALHA -->
+        <div class="lg:col-span-6 space-y-5">
+          
+          <!-- Card Eletroduto -->
+          <div class="bg-white border-2 border-upe-blue rounded-xl p-5 shadow-md space-y-3.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-upe-blue">Eletroduto Recomendado</span>
+              <span id="cond-taxa-eletroduto-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-upe-blueLight text-upe-blue font-mono">
+                Limite: 40% (NBR 5410)
+              </span>
+            </div>
+
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span id="cond-res-eletroduto-nome" class="text-4xl sm:text-5xl font-black font-mono text-slate-900">--</span>
+                <span class="text-xs text-slate-500 block font-mono mt-1">Diâmetro Interno: <span id="cond-res-eletroduto-dint">--</span> mm</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[11px] text-slate-500 block font-sans">Taxa de Ocupação Real</span>
+                <span id="cond-res-eletroduto-ocupacao" class="text-2xl font-black font-mono text-emerald-700">--%</span>
+              </div>
+            </div>
+
+            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+              <div id="cond-eletroduto-bar" class="h-full bg-upe-blue transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- ACORDEÃO: PRÓXIMAS 3 SEÇÕES MAIORES DE ELETRODUTO -->
+            <details class="group pt-2 border-t border-slate-100">
+              <summary class="flex items-center justify-between text-xs font-bold text-upe-blue cursor-pointer select-none hover:text-upe-blueHover transition">
+                <span>Ver próximas 3 seções maiores</span>
+                <span class="text-[10px] text-slate-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+              </summary>
+              <div id="cond-res-eletroduto-proximos" class="mt-2.5 space-y-1.5 text-xs font-mono">
+                <p class="text-[11px] text-slate-400 italic">Aguardando dados...</p>
+              </div>
+            </details>
+          </div>
+
+          <!-- Card Eletrocalha -->
+          <div class="bg-white border-2 border-slate-300 rounded-xl p-5 shadow-md space-y-3.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Eletrocalha Recomendada</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono">
+                Limite: 40%
+              </span>
+            </div>
+
+            <div class="flex items-baseline justify-between">
+              <div>
+                <span id="cond-res-eletrocalha-nome" class="text-3xl sm:text-4xl font-black font-mono text-slate-900">--</span>
+                <span class="text-xs text-slate-500 block font-mono mt-1">Seção Útil: <span id="cond-res-eletrocalha-area">--</span> mm²</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[11px] text-slate-500 block font-sans">Taxa de Ocupação</span>
+                <span id="cond-res-eletrocalha-ocupacao" class="text-2xl font-black font-mono text-emerald-700">--%</span>
+              </div>
+            </div>
+
+            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+              <div id="cond-eletrocalha-bar" class="h-full bg-slate-700 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- ACORDEÃO: PRÓXIMAS 3 SEÇÕES MAIORES DE ELETROCALHA -->
+            <details class="group pt-2 border-t border-slate-100">
+              <summary class="flex items-center justify-between text-xs font-bold text-slate-700 cursor-pointer select-none hover:text-slate-900 transition">
+                <span>Ver próximas 3 seções maiores</span>
+                <span class="text-[10px] text-slate-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+              </summary>
+              <div id="cond-res-eletrocalha-proximos" class="mt-2.5 space-y-1.5 text-xs font-mono">
+                <p class="text-[11px] text-slate-400 italic">Aguardando dados...</p>
+              </div>
+            </details>
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
 

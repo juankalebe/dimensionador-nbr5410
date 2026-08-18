@@ -97,3 +97,56 @@ export const TABELA_37_XLPE = [
   { secao: 185, A1: { n2: 362,  n3: 324  }, A2: { n2: 324,  n3: 291  }, B1: { n2: 464,  n3: 408  }, B2: { n2: 395,  n3: 348  }, C: { n2: 506,  n3: 424  }, D: { n2: 363,  n3: 304  } },
   { secao: 240, A1: { n2: 424,  n3: 380  }, A2: { n2: 379,  n3: 340  }, B1: { n2: 546,  n3: 479  }, B2: { n2: 462,  n3: 407  }, C: { n2: 599,  n3: 500  }, D: { n2: 419,  n3: 351  } }
 ];
+
+// ------------------------------------------------------------------------------
+// 9. CATÁLOGO DE DIÂMETROS DE CABOS (Para Dimensionamento de Condutos)
+// ------------------------------------------------------------------------------
+export const CATALOGO_CABOS_DIAMETRO = [
+  // Cabos 450/750V (Unipolares)
+  { id: 'pvc_1.5', tipo: '450/750V', secao: 1.5, polos: 'Unipolar', diametro: 2.95 },
+  { id: 'pvc_2.5', tipo: '450/750V', secao: 2.5, polos: 'Unipolar', diametro: 3.50 },
+  { id: 'pvc_4',   tipo: '450/750V', secao: 4.0, polos: 'Unipolar', diametro: 4.00 },
+  { id: 'pvc_6',   tipo: '450/750V', secao: 6.0, polos: 'Unipolar', diametro: 4.60 },
+  { id: 'pvc_10',  tipo: '450/750V', secao: 10,  polos: 'Unipolar', diametro: 6.10 },
+  { id: 'pvc_16',  tipo: '450/750V', secao: 16,  polos: 'Unipolar', diametro: 7.20 },
+
+  // Cabos 0,6/1,0kV Unipolares
+  { id: 'gsette_4_1',  tipo: '0.6/1kV', secao: 4.0, polos: 'Unipolar', diametro: 5.70 },
+  { id: 'gsette_6_1',  tipo: '0.6/1kV', secao: 6.0, polos: 'Unipolar', diametro: 6.30 },
+  { id: 'gsette_10_1', tipo: '0.6/1kV', secao: 10,  polos: 'Unipolar', diametro: 7.40 },
+  { id: 'gsette_16_1', tipo: '0.6/1kV', secao: 16,  polos: 'Unipolar', diametro: 9.00 },
+  { id: 'gsette_25_1', tipo: '0.6/1kV', secao: 25,  polos: 'Unipolar', diametro: 11.0 },
+  { id: 'gsette_50_1', tipo: '0.6/1kV', secao: 50,  polos: 'Unipolar', diametro: 13.8 },
+  { id: 'gsette_95_1', tipo: '0.6/1kV', secao: 95,  polos: 'Unipolar', diametro: 17.6 },
+
+  // Cabos 0,6/1,0kV Tetrapolares
+  { id: 'gsette_4_4',  tipo: '0.6/1kV', secao: 4.0, polos: 'Tetrapolar', diametro: 12.3 },
+  { id: 'gsette_6_4',  tipo: '0.6/1kV', secao: 6.0, polos: 'Tetrapolar', diametro: 13.9 },
+  { id: 'gsette_10_4', tipo: '0.6/1kV', secao: 10,  polos: 'Tetrapolar', diametro: 16.8 },
+  { id: 'gsette_16_4', tipo: '0.6/1kV', secao: 16,  polos: 'Tetrapolar', diametro: 21.0 },
+  { id: 'gsette_25_4', tipo: '0.6/1kV', secao: 25,  polos: 'Tetrapolar', diametro: 24.2 }
+];
+
+// ------------------------------------------------------------------------------
+// 10. DIMENSÕES COMERCIAIS DE CONDUTOS
+// ------------------------------------------------------------------------------
+export const TABELA_ELETRODUTOS = [
+  { nome: '3/4"',   dInt: 21.0, areaTotal: 346.36 },
+  { nome: '1"',     dInt: 26.0, areaTotal: 530.93 },
+  { nome: '1.1/4"', dInt: 34.0, areaTotal: 907.92 },
+  { nome: '1.1/2"', dInt: 38.0, areaTotal: 1134.11 },
+  { nome: '2"',     dInt: 52.0, areaTotal: 2123.72 },
+  { nome: '2.1/2"', dInt: 67.1, areaTotal: 3536.42 },
+  { nome: '3"',     dInt: 79.6, areaTotal: 4976.43 },
+  { nome: '4"',     dInt: 100.0, areaTotal: 7853.98 }
+];
+
+export const TABELA_ELETROCALHAS = [
+  { nome: '50x50 mm',   areaTotal: 2500 },
+  { nome: '100x50 mm',  areaTotal: 5000 },
+  { nome: '100x100 mm', areaTotal: 10000 },
+  { nome: '150x100 mm', areaTotal: 15000 },
+  { nome: '150x150 mm', areaTotal: 22500 },
+  { nome: '200x100 mm', areaTotal: 20000 },
+  { nome: '200x200 mm', areaTotal: 40000 }
+];

@@ -4,7 +4,17 @@
 // ==============================================================================
 
 import { dimensionarCircuito } from './engine.js';
-import { TABELA_36_PVC, TABELA_37_XLPE, FCT_PVC, FCT_XLPE, FCA_A_F, FCR_SOLO } from './tables.js';
+import { 
+  TABELA_36_PVC, 
+  TABELA_37_XLPE, 
+  FCT_PVC, 
+  FCT_XLPE, 
+  FCA_A_F, 
+  FCR_SOLO,
+  CATALOGO_CABOS_DIAMETRO, 
+  TABELA_ELETRODUTOS, 
+  TABELA_ELETROCALHAS 
+} from './tables.js';
 
 // ==============================================================================
 // 1. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 1: GERAL)
@@ -112,15 +122,43 @@ const ampOutputs = {
   explicacao: document.getElementById('amp-corr-explicacao')
 };
 
+// ==============================================================================
+// 3. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 3: CONDUTOS)
+// ==============================================================================
+let listaCabosConduto = [
+  { caboId: 'pvc_2.5', qtd: 3 },
+  { caboId: 'pvc_4',   qtd: 0 }
+];
+
+const condElements = {
+  tabelaBody: document.getElementById('cond-tabela-cabos-body'),
+  btnAddCabo: document.getElementById('cond-btn-add-cabo'),
+  areaTotalLabel: document.getElementById('cond-res-area-total'),
+  totalCondutoresLabel: document.getElementById('cond-res-total-condutores'),
+  taxaLimiteBadge: document.getElementById('cond-taxa-eletroduto-badge'),
+  eletrodutoNome: document.getElementById('cond-res-eletroduto-nome'),
+  eletrodutoDint: document.getElementById('cond-res-eletroduto-dint'),
+  eletrodutoOcupacao: document.getElementById('cond-res-eletroduto-ocupacao'),
+  eletrodutoBar: document.getElementById('cond-eletroduto-bar'),
+  eletrodutoProximos: document.getElementById('cond-res-eletroduto-proximos'),
+  eletrocalhaNome: document.getElementById('cond-res-eletrocalha-nome'),
+  eletrocalhaArea: document.getElementById('cond-res-eletrocalha-area'),
+  eletrocalhaOcupacao: document.getElementById('cond-res-eletrocalha-ocupacao'),
+  eletrocalhaBar: document.getElementById('cond-eletrocalha-bar'),
+  eletrocalhaProximos: document.getElementById('cond-res-eletrocalha-proximos')
+};
+
 const tabs = {
   btnGeral: document.getElementById('tab-btn-geral'),
   btnAmpacidade: document.getElementById('tab-btn-ampacidade'),
+  btnCondutos: document.getElementById('tab-btn-condutos'),
   contentGeral: document.getElementById('tab-content-geral'),
-  contentAmpacidade: document.getElementById('tab-content-ampacidade')
+  contentAmpacidade: document.getElementById('tab-content-ampacidade'),
+  contentCondutos: document.getElementById('tab-content-condutos')
 };
 
 // ==============================================================================
-// 3. CÁLCULO DA ABA 1: DIMENSIONAMENTO GERAL (4 CRITÉRIOS)
+// 4. CÁLCULO DA ABA 1: DIMENSIONAMENTO GERAL (4 CRITÉRIOS)
 // ==============================================================================
 function atualizarCalculoGeral() {
   if (!inputs.potencia) return;
@@ -143,7 +181,7 @@ function atualizarCalculoGeral() {
   const res = dimensionarCircuito(dados);
 
   outputs.secaoFinal.textContent = res.sFinal;
-  outputs.disjuntor.textContent = res.disjuntor !== null ? res.disjuntor : '⚠️';
+  outputs.disjuntor.textContent = res.disjuntor !== null ? res.disjuntor : '--';
   outputs.criterioBadge.textContent = `Critério: ${res.criterioGovernante}`;
 
   outputs.ib.textContent = res.ib.toFixed(2);
@@ -168,10 +206,10 @@ function atualizarCalculoGeral() {
 
   if (res.disjuntor !== null) {
     outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-blue-50 border-blue-200 text-[#1C3C78]';
-    outputs.statusProtecao.innerHTML = `✔ <strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
+    outputs.statusProtecao.innerHTML = `<strong>Coordenação NBR 5410 Válida:</strong> ${res.ib.toFixed(1)} A (Ib) ≤ <strong>${res.disjuntor} A (In)</strong> ≤ ${res.izRealInstalado.toFixed(1)} A (Iz real)`;
   } else {
     outputs.statusProtecao.className = 'p-3.5 rounded-lg border text-xs font-mono font-semibold transition-colors bg-red-50 border-red-200 text-[#ED232A]';
-    outputs.statusProtecao.innerHTML = `✖ <strong>Proteção Incompatível:</strong> Nenhum disjuntor comercial atende Ib (${res.ib.toFixed(1)} A) ≤ In ≤ Iz_real (${res.izRealInstalado.toFixed(1)} A).`;
+    outputs.statusProtecao.innerHTML = `<strong>Proteção Incompatível:</strong> Nenhum disjuntor comercial atende Ib (${res.ib.toFixed(1)} A) ≤ In ≤ Iz_real (${res.izRealInstalado.toFixed(1)} A).`;
   }
 
   const formulaIb = dados.sistema === 'trifasico'
@@ -190,7 +228,7 @@ function atualizarCalculoGeral() {
 }
 
 // ==============================================================================
-// 4. CÁLCULO DA ABA 2: AMPACIDADE (DIRETA + CORREÇÃO AMBIENTAL)
+// 5. CÁLCULO DA ABA 2: AMPACIDADE (DIRETA + CORREÇÃO AMBIENTAL)
 // ==============================================================================
 function atualizarCalculoAmpacidade() {
   if (!ampInputs.tensao) return;
@@ -311,13 +349,12 @@ function atualizarCalculoAmpacidade() {
 
   const fct = (isolacao === 'PVC' ? FCT_PVC[tempVal] : FCT_XLPE[tempVal]) || 1.0;
   const fca = FCA_A_F[agrupVal] || 1.0;
-  const fcr = metodo === 'D' ? (FCR_SOLO[soloVal] || 1.0) : 1.0; // Solo só atua no Método D
+  const fcr = metodo === 'D' ? (FCR_SOLO[soloVal] || 1.0) : 1.0;
 
   const fTotal = fct * fca * fcr;
   ampOutputs.fatorTotalBadge.textContent = `Ftotal = ${fTotal.toFixed(3)} (FCT: ${fct.toFixed(2)} | FCA: ${fca.toFixed(2)}${metodo === 'D' ? ` | FCR: ${fcr.toFixed(2)}` : ''})`;
 
   if (condutorSemCorr) {
-    // 1. Efeito da degradação no cabo inicial
     const izDegradado = condutorSemCorr.iz * fTotal;
     ampOutputs.caboOrig.textContent = `${condutorSemCorr.secao} mm²`;
     ampOutputs.izOrig.textContent = `${condutorSemCorr.iz.toFixed(1)} A`;
@@ -325,13 +362,12 @@ function atualizarCalculoAmpacidade() {
 
     if (izDegradado >= ib) {
       ampOutputs.statusCaboOrig.className = 'p-2 rounded text-[11px] font-mono font-bold text-center bg-emerald-50 text-emerald-700 border border-emerald-200';
-      ampOutputs.statusCaboOrig.textContent = `✔ Mantém capacidade (Iz real ${izDegradado.toFixed(1)}A ≥ Ib ${ib.toFixed(1)}A)`;
+      ampOutputs.statusCaboOrig.textContent = `Mantém capacidade (Iz real ${izDegradado.toFixed(1)}A ≥ Ib ${ib.toFixed(1)}A)`;
     } else {
       ampOutputs.statusCaboOrig.className = 'p-2 rounded text-[11px] font-mono font-bold text-center bg-red-50 text-upe-red border border-red-200';
-      ampOutputs.statusCaboOrig.textContent = `✖ Reprovado por Fator Térmico (${izDegradado.toFixed(1)}A < Ib ${ib.toFixed(1)}A)`;
+      ampOutputs.statusCaboOrig.textContent = `Reprovado por Fator Térmico (${izDegradado.toFixed(1)}A < Ib ${ib.toFixed(1)}A)`;
     }
 
-    // 2. Busca do Condutor Final Corrigido (Iz_tabela >= Ib / Ftotal)
     const izNecessarioCatalogo = ib / fTotal;
     let condutorCorrigido = null;
 
@@ -372,7 +408,198 @@ function atualizarCalculoAmpacidade() {
 }
 
 // ==============================================================================
-// 5. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR vs CAPACITOR)
+// 6. FUNÇÕES DE CÁLCULO - ABA 3 (CONDUTOS)
+// ==============================================================================
+function renderizarLinhasCabos() {
+  if (!condElements.tabelaBody) return;
+  condElements.tabelaBody.innerHTML = '';
+
+  listaCabosConduto.forEach((item, index) => {
+    const caboInfo = CATALOGO_CABOS_DIAMETRO.find(c => c.id === item.caboId) || CATALOGO_CABOS_DIAMETRO[0];
+    const areaUnit = (Math.PI * Math.pow(caboInfo.diametro, 2)) / 4;
+    const areaTotalLinha = areaUnit * item.qtd;
+
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50';
+    tr.innerHTML = `
+      <td class="py-2.5">
+        <select data-index="${index}" class="cond-select-cabo bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-800 outline-none">
+          ${CATALOGO_CABOS_DIAMETRO.map(c => `
+            <option value="${c.id}" ${c.id === item.caboId ? 'selected' : ''}>
+              ${c.tipo} ${c.secao}mm² (${c.polos})
+            </option>
+          `).join('')}
+        </select>
+      </td>
+      <td class="py-2.5 text-center text-slate-600">${caboInfo.diametro.toFixed(2)}</td>
+      <td class="py-2.5 text-center">
+        <input type="number" data-index="${index}" min="0" max="100" value="${item.qtd}" class="cond-input-qtd w-14 text-center bg-white border border-slate-300 rounded px-1.5 py-1 text-xs font-bold outline-none" />
+      </td>
+      <td class="py-2.5 text-right font-bold text-slate-800">${areaTotalLinha.toFixed(1)}</td>
+      <td class="py-2.5 text-center">
+        <button type="button" data-index="${index}" class="cond-btn-del text-slate-400 hover:text-upe-red font-bold text-sm px-1.5 transition">✕</button>
+      </td>
+    `;
+    condElements.tabelaBody.appendChild(tr);
+  });
+
+  document.querySelectorAll('.cond-select-cabo').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = e.target.getAttribute('data-index');
+      listaCabosConduto[idx].caboId = e.target.value;
+      renderizarLinhasCabos();
+      atualizarCalculoCondutos();
+    });
+  });
+
+  document.querySelectorAll('.cond-input-qtd').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = e.target.getAttribute('data-index');
+      listaCabosConduto[idx].qtd = parseInt(e.target.value, 10) || 0;
+      atualizarCalculoCondutos();
+    });
+  });
+
+  document.querySelectorAll('.cond-btn-del').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = e.target.getAttribute('data-index');
+      listaCabosConduto.splice(idx, 1);
+      renderizarLinhasCabos();
+      atualizarCalculoCondutos();
+    });
+  });
+}
+
+function atualizarCalculoCondutos() {
+  if (!condElements.areaTotalLabel) return;
+
+  let areaTotalCabos = 0;
+  let totalCondutores = 0;
+
+  listaCabosConduto.forEach(item => {
+    const caboInfo = CATALOGO_CABOS_DIAMETRO.find(c => c.id === item.caboId);
+    if (caboInfo && item.qtd > 0) {
+      const areaUnit = (Math.PI * Math.pow(caboInfo.diametro, 2)) / 4;
+      areaTotalCabos += areaUnit * item.qtd;
+
+      const multiplicadorPolos = caboInfo.polos === 'Tetrapolar' ? 4 : 1;
+      totalCondutores += item.qtd * multiplicadorPolos;
+    }
+  });
+
+  condElements.areaTotalLabel.textContent = areaTotalCabos.toFixed(2);
+  condElements.totalCondutoresLabel.textContent = totalCondutores;
+
+  let taxaLimiteEletroduto = 0.40;
+  if (totalCondutores === 1) taxaLimiteEletroduto = 0.53;
+  else if (totalCondutores === 2) taxaLimiteEletroduto = 0.31;
+  else taxaLimiteEletroduto = 0.40;
+
+  condElements.taxaLimiteBadge.textContent = `Limite: ${(taxaLimiteEletroduto * 100).toFixed(0)}% (${totalCondutores} cond.)`;
+
+  if (areaTotalCabos <= 0) {
+    condElements.eletrodutoNome.textContent = '--';
+    condElements.eletrodutoDint.textContent = '--';
+    condElements.eletrodutoOcupacao.textContent = '0%';
+    condElements.eletrodutoBar.style.width = '0%';
+    if (condElements.eletrodutoProximos) condElements.eletrodutoProximos.innerHTML = '<p class="text-[11px] text-slate-400 italic">Aguardando dados...</p>';
+
+    condElements.eletrocalhaNome.textContent = '--';
+    condElements.eletrocalhaArea.textContent = '--';
+    condElements.eletrocalhaOcupacao.textContent = '0%';
+    condElements.eletrocalhaBar.style.width = '0%';
+    if (condElements.eletrocalhaProximos) condElements.eletrocalhaProximos.innerHTML = '<p class="text-[11px] text-slate-400 italic">Aguardando dados...</p>';
+    return;
+  }
+
+  // 1. Eletroduto
+  let eletrodutoEscolhido = null;
+  let idxEletroduto = -1;
+  for (let i = 0; i < TABELA_ELETRODUTOS.length; i++) {
+    const el = TABELA_ELETRODUTOS[i];
+    const ocupacao = areaTotalCabos / el.areaTotal;
+    if (ocupacao <= taxaLimiteEletroduto) {
+      eletrodutoEscolhido = { ...el, ocupacaoPercent: ocupacao * 100 };
+      idxEletroduto = i;
+      break;
+    }
+  }
+
+  if (eletrodutoEscolhido) {
+    condElements.eletrodutoNome.textContent = eletrodutoEscolhido.nome;
+    condElements.eletrodutoDint.textContent = eletrodutoEscolhido.dInt;
+    condElements.eletrodutoOcupacao.textContent = `${eletrodutoEscolhido.ocupacaoPercent.toFixed(1)}%`;
+    condElements.eletrodutoBar.style.width = `${Math.min(eletrodutoEscolhido.ocupacaoPercent, 100)}%`;
+
+    // Renderizar próximas 3 seções maiores
+    const proximosEletrodutos = TABELA_ELETRODUTOS.slice(idxEletroduto + 1, idxEletroduto + 4);
+    if (proximosEletrodutos.length > 0 && condElements.eletrodutoProximos) {
+      condElements.eletrodutoProximos.innerHTML = proximosEletrodutos.map(item => {
+        const ocup = (areaTotalCabos / item.areaTotal) * 100;
+        return `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">${item.nome} <span class="text-slate-400 font-normal">(Ø int. ${item.dInt} mm)</span></span>
+            <span class="text-emerald-700 font-black">${ocup.toFixed(1)}%</span>
+          </div>
+        `;
+      }).join('');
+    } else if (condElements.eletrodutoProximos) {
+      condElements.eletrodutoProximos.innerHTML = '<p class="text-[11px] text-slate-400 italic">Não há seções comerciais maiores cadastradas.</p>';
+    }
+  } else {
+    condElements.eletrodutoNome.textContent = '> 4"';
+    condElements.eletrodutoDint.textContent = '--';
+    condElements.eletrodutoOcupacao.textContent = 'Sobrecarga';
+    condElements.eletrodutoBar.style.width = '100%';
+    if (condElements.eletrodutoProximos) condElements.eletrodutoProximos.innerHTML = '<p class="text-[11px] text-upe-red font-bold">Sobrecarga acima do diâmetro máximo de 4".</p>';
+  }
+
+  // 2. Eletrocalha (Limite 40%)
+  const taxaLimiteEletrocalha = 0.40;
+  let eletrocalhaEscolhida = null;
+  let idxEletrocalha = -1;
+  for (let i = 0; i < TABELA_ELETROCALHAS.length; i++) {
+    const ec = TABELA_ELETROCALHAS[i];
+    const ocupacao = areaTotalCabos / ec.areaTotal;
+    if (ocupacao <= taxaLimiteEletrocalha) {
+      eletrocalhaEscolhida = { ...ec, ocupacaoPercent: ocupacao * 100 };
+      idxEletrocalha = i;
+      break;
+    }
+  }
+
+  if (eletrocalhaEscolhida) {
+    condElements.eletrocalhaNome.textContent = eletrocalhaEscolhida.nome;
+    condElements.eletrocalhaArea.textContent = eletrocalhaEscolhida.areaTotal;
+    condElements.eletrocalhaOcupacao.textContent = `${eletrocalhaEscolhida.ocupacaoPercent.toFixed(1)}%`;
+    condElements.eletrocalhaBar.style.width = `${Math.min(eletrocalhaEscolhida.ocupacaoPercent, 100)}%`;
+
+    // Renderizar próximas 3 seções maiores
+    const proximasEletrocalhas = TABELA_ELETROCALHAS.slice(idxEletrocalha + 1, idxEletrocalha + 4);
+    if (proximasEletrocalhas.length > 0 && condElements.eletrocalhaProximos) {
+      condElements.eletrocalhaProximos.innerHTML = proximasEletrocalhas.map(item => {
+        const ocup = (areaTotalCabos / item.areaTotal) * 100;
+        return `
+          <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+            <span class="font-bold text-slate-800">${item.nome} <span class="text-slate-400 font-normal">(${item.areaTotal} mm²)</span></span>
+            <span class="text-emerald-700 font-black">${ocup.toFixed(1)}%</span>
+          </div>
+        `;
+      }).join('');
+    } else if (condElements.eletrocalhaProximos) {
+      condElements.eletrocalhaProximos.innerHTML = '<p class="text-[11px] text-slate-400 italic">Não há seções comerciais maiores cadastradas.</p>';
+    }
+  } else {
+    condElements.eletrocalhaNome.textContent = '> 200x200';
+    condElements.eletrocalhaArea.textContent = '--';
+    condElements.eletrocalhaOcupacao.textContent = 'Sobrecarga';
+    condElements.eletrocalhaBar.style.width = '100%';
+    if (condElements.eletrocalhaProximos) condElements.eletrocalhaProximos.innerHTML = '<p class="text-[11px] text-upe-red font-bold">Sobrecarga acima de 200x200 mm.</p>';
+  }
+}
+
+// ==============================================================================
+// 7. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR vs CAPACITOR)
 // ==============================================================================
 function configurarModoAmpacidade(tipo) {
   ampTipoAplicacao = tipo;
@@ -448,7 +675,7 @@ function atualizarSubModoMotor() {
 }
 
 // ==============================================================================
-// 6. LISTENERS E EVENTOS
+// 8. LISTENERS E EVENTOS
 // ==============================================================================
 
 // Aba 1
@@ -511,26 +738,39 @@ if (presets.ilum) {
   });
 }*/
 
+// Aba 3 (Condutos)
+if (condElements.btnAddCabo) {
+  condElements.btnAddCabo.addEventListener('click', () => {
+    listaCabosConduto.push({ caboId: 'pvc_2.5', qtd: 1 });
+    renderizarLinhasCabos();
+    atualizarCalculoCondutos();
+  });
+}
+
 // Alternador de Abas
 function alternarAba(abaAtiva) {
-  if (abaAtiva === 'geral') {
-    tabs.contentGeral.classList.remove('hidden');
-    tabs.contentAmpacidade.classList.add('hidden');
-    tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
-    tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
-  } else if (abaAtiva === 'ampacidade') {
-    tabs.contentGeral.classList.add('hidden');
-    tabs.contentAmpacidade.classList.remove('hidden');
-    tabs.btnAmpacidade.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
-    tabs.btnGeral.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
-  }
+  const todasAbas = ['geral', 'ampacidade', 'condutos'];
+  todasAbas.forEach(aba => {
+    const content = document.getElementById(`tab-content-${aba}`);
+    const btn = document.getElementById(`tab-btn-${aba}`);
+    if (aba === abaAtiva) {
+      content?.classList.remove('hidden');
+      if (btn) btn.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-upe-blue text-upe-blue transition';
+    } else {
+      content?.classList.add('hidden');
+      if (btn) btn.className = 'pb-3 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-upe-blue transition';
+    }
+  });
 }
 
-if (tabs.btnGeral && tabs.btnAmpacidade) {
-  tabs.btnGeral.addEventListener('click', () => alternarAba('geral'));
-  tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
-}
+if (tabs.btnGeral) tabs.btnGeral.addEventListener('click', () => alternarAba('geral'));
+if (tabs.btnAmpacidade) tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
+if (tabs.btnCondutos) tabs.btnCondutos.addEventListener('click', () => alternarAba('condutos'));
 
-// Inicialização
+// ==============================================================================
+// 9. INICIALIZAÇÃO AUTOMÁTICA
+// ==============================================================================
 atualizarCalculoGeral();
 atualizarCalculoAmpacidade();
+renderizarLinhasCabos();
+atualizarCalculoCondutos();
