@@ -46,12 +46,12 @@ const memorial = {
   protecao: document.getElementById('mem-protecao')
 };
 
-const presets = {
-  chuveiro: document.getElementById('preset-chuveiro'),
-  ar: document.getElementById('preset-ar'),
-  tugs: document.getElementById('preset-tugs'),
-  ilum: document.getElementById('preset-ilum')
-};
+//const presets = {
+//  chuveiro: document.getElementById('preset-chuveiro'),
+//  ar: document.getElementById('preset-ar'),
+//  tugs: document.getElementById('preset-tugs'),
+//  ilum: document.getElementById('preset-ilum')
+//};
 
 // ==============================================================================
 // 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE & CORREÇÕES)
@@ -476,7 +476,7 @@ if (ampControls.tipoMotorBtn) ampControls.tipoMotorBtn.addEventListener('click',
 if (ampControls.tipoCapacitorBtn) ampControls.tipoCapacitorBtn.addEventListener('click', () => configurarModoAmpacidade('capacitor'));
 
 // Presets Aba 1
-function aplicarPreset(config) {
+/*function aplicarPreset(config) {
   inputs.potencia.value = config.potencia;
   inputs.tensao.value = config.tensao;
   inputs.sistema.value = config.sistema;
@@ -509,7 +509,7 @@ if (presets.ilum) {
   presets.ilum.addEventListener('click', () => {
     aplicarPreset({ potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao', cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0 });
   });
-}
+}*/
 
 // Alternador de Abas
 function alternarAba(abaAtiva) {
