@@ -13,8 +13,13 @@ import {
   FCR_SOLO,
   CATALOGO_CABOS_DIAMETRO, 
   TABELA_ELETRODUTOS, 
-  TABELA_ELETROCALHAS 
+  TABELA_ELETROCALHAS,
+  TABELA_IMPEDANCIA_COBRE
 } from './tables.js';
+
+// Bitolas padronizadas
+const SECOES_COMERCIAIS_TODAS = [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240];
+const SECOES_MAIORES_25 = [35, 50, 70, 95, 120, 150, 185, 240];
 
 // ==============================================================================
 // 1. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 1: GERAL)
@@ -56,13 +61,6 @@ const memorial = {
   protecao: document.getElementById('mem-protecao')
 };
 
-//const presets = {
-//  chuveiro: document.getElementById('preset-chuveiro'),
-//  ar: document.getElementById('preset-ar'),
-//  tugs: document.getElementById('preset-tugs'),
-//  ilum: document.getElementById('preset-ilum')
-//};
-
 // ==============================================================================
 // 2. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 2: AMPACIDADE & CORREÇÕES)
 // ==============================================================================
@@ -95,7 +93,6 @@ const ampInputs = {
   fs: document.getElementById('amp-fs'),
   metodo: document.getElementById('amp-metodo'),
   isolacao: document.getElementById('amp-isolacao'),
-  // Fatores de Correção
   corrTemp: document.getElementById('amp-corr-temp'),
   corrAgrup: document.getElementById('amp-corr-agrup'),
   corrSolo: document.getElementById('amp-corr-solo')
@@ -110,7 +107,6 @@ const ampOutputs = {
   ib: document.getElementById('amp-res-ib'),
   margem: document.getElementById('amp-res-margem'),
   formulaBox: document.getElementById('amp-res-formula-box'),
-  // Saídas da Correção
   fatorTotalBadge: document.getElementById('amp-fator-total-badge'),
   caboOrig: document.getElementById('amp-corr-cabo-orig'),
   izOrig: document.getElementById('amp-corr-iz-orig'),
@@ -148,17 +144,59 @@ const condElements = {
   eletrocalhaProximos: document.getElementById('cond-res-eletrocalha-proximos')
 };
 
+// ==============================================================================
+// 4. MAPEAMENTO DOS ELEMENTOS DO DOM (ABA 4: QUEDA DE TENSÃO)
+// ==============================================================================
+let quedaModo = 'ate25'; // 'ate25' ou 'acima25'
+
+const quedaControls = {
+  btnAte25: document.getElementById('queda-modo-ate25-btn'),
+  btnAcima25: document.getElementById('queda-modo-acima25-btn'),
+  modoBadge: document.getElementById('queda-modo-badge'),
+  wrapperSistema: document.getElementById('queda-wrapper-sistema'),
+  wrapperMaterial: document.getElementById('queda-wrapper-material'),
+  wrapperAcima25: document.getElementById('queda-wrapper-acima25')
+};
+
+const quedaInputs = {
+  sistema: document.getElementById('queda-sistema'),
+  tensao: document.getElementById('queda-tensao'),
+  tensaoLabel: document.getElementById('queda-tensao-label'),
+  corrente: document.getElementById('queda-corrente'),
+  comprimento: document.getElementById('queda-comprimento'),
+  limite: document.getElementById('queda-limite'),
+  material: document.getElementById('queda-material'),
+  cosPhi: document.getElementById('queda-cosphi'),
+  ncp: document.getElementById('queda-ncp')
+};
+
+const quedaOutputs = {
+  secaoComercial: document.getElementById('queda-res-secao-comercial'),
+  metodoBadge: document.getElementById('queda-res-metodo-badge'),
+  paraleloInfo: document.getElementById('queda-res-paralelo-info'),
+  card2Titulo: document.getElementById('queda-res-card2-titulo'),
+  card2Valor: document.getElementById('queda-res-card2-valor'),
+  card2Unidade: document.getElementById('queda-res-card2-unidade'),
+  card2Legenda: document.getElementById('queda-res-card2-legenda'),
+  deltaPercent: document.getElementById('queda-res-delta-percent'),
+  deltaVolts: document.getElementById('queda-res-delta-volts'),
+  formulaBox: document.getElementById('queda-res-formula-box')
+};
+
+// Gerenciador Geral de Abas
 const tabs = {
   btnGeral: document.getElementById('tab-btn-geral'),
   btnAmpacidade: document.getElementById('tab-btn-ampacidade'),
   btnCondutos: document.getElementById('tab-btn-condutos'),
+  btnQueda: document.getElementById('tab-btn-queda'),
   contentGeral: document.getElementById('tab-content-geral'),
   contentAmpacidade: document.getElementById('tab-content-ampacidade'),
-  contentCondutos: document.getElementById('tab-content-condutos')
+  contentCondutos: document.getElementById('tab-content-condutos'),
+  contentQueda: document.getElementById('tab-content-queda')
 };
 
 // ==============================================================================
-// 4. CÁLCULO DA ABA 1: DIMENSIONAMENTO GERAL (4 CRITÉRIOS)
+// 5. CÁLCULO DA ABA 1: DIMENSIONAMENTO GERAL (4 CRITÉRIOS)
 // ==============================================================================
 function atualizarCalculoGeral() {
   if (!inputs.potencia) return;
@@ -228,7 +266,7 @@ function atualizarCalculoGeral() {
 }
 
 // ==============================================================================
-// 5. CÁLCULO DA ABA 2: AMPACIDADE (DIRETA + CORREÇÃO AMBIENTAL)
+// 6. CÁLCULO DA ABA 2: AMPACIDADE (DIRETA + CORREÇÃO AMBIENTAL)
 // ==============================================================================
 function atualizarCalculoAmpacidade() {
   if (!ampInputs.tensao) return;
@@ -244,7 +282,6 @@ function atualizarCalculoAmpacidade() {
 
   const motorInputType = document.querySelector('input[name="amp-motor-input-type"]:checked')?.value || 'potencia';
 
-  // --- CÁLCULO DA CORRENTE NOMINAL E DE PROJETO (Ib) ---
   if (ampTipoAplicacao === 'geral') {
     const P = parseFloat(ampInputs.potencia.value) || 0;
     const cosPhi = parseFloat(ampInputs.cosPhi.value) || 1.0;
@@ -306,7 +343,6 @@ function atualizarCalculoAmpacidade() {
     }
   }
 
-  // --- SELEÇÃO DO CABO INICIAL (SEM CORREÇÃO: Iz >= Ib) ---
   const tabela = isolacao === 'PVC' ? TABELA_36_PVC : TABELA_37_XLPE;
   const condKey = sistema === 'trifasico' ? 'n3' : 'n2';
 
@@ -320,7 +356,6 @@ function atualizarCalculoAmpacidade() {
     }
   }
 
-  // Atualização dos Resultados Sem Correção
   ampOutputs.in.textContent = inNominal.toFixed(2);
   ampOutputs.ib.textContent = ib.toFixed(2);
   ampOutputs.formulaBox.innerHTML = formulaTexto;
@@ -340,9 +375,7 @@ function atualizarCalculoAmpacidade() {
     ampOutputs.margem.className = 'text-xs font-bold font-mono text-upe-red';
   }
 
-  // ============================================================================
-  // CÁLCULO DA PARTE DE CORREÇÃO (FCT, FCA, FCR)
-  // ============================================================================
+  // Correção Térmica
   const tempVal = parseInt(ampInputs.corrTemp.value, 10) || 30;
   const agrupVal = parseInt(ampInputs.corrAgrup.value, 10) || 1;
   const soloVal = parseFloat(ampInputs.corrSolo.value) || 2.5;
@@ -402,13 +435,13 @@ function atualizarCalculoAmpacidade() {
       ampOutputs.izInstalado.textContent = '--';
       ampOutputs.badgeMudanca.className = 'text-[10px] font-bold px-2 py-0.5 rounded font-mono bg-upe-red text-white';
       ampOutputs.badgeMudanca.textContent = 'Sobrecarga Normativa';
-      ampOutputs.explicacao.innerHTML = `Nenhum condutor padrão até 240 mm² suporta a corrente corrigida requerida de <strong>${izNecessarioCatalogo.toFixed(2)} A</strong>. Divida em condutores em paralelo.`;
+      ampOutputs.explicacao.innerHTML = `Nenhum condutor padrão até 240 mm² suporta a corrente corrigida de <strong>${izNecessarioCatalogo.toFixed(2)} A</strong>.`;
     }
   }
 }
 
 // ==============================================================================
-// 6. FUNÇÕES DE CÁLCULO - ABA 3 (CONDUTOS)
+// 7. FUNÇÕES DE CÁLCULO - ABA 3 (CONDUTOS)
 // ==============================================================================
 function renderizarLinhasCabos() {
   if (!condElements.tabelaBody) return;
@@ -531,7 +564,6 @@ function atualizarCalculoCondutos() {
     condElements.eletrodutoOcupacao.textContent = `${eletrodutoEscolhido.ocupacaoPercent.toFixed(1)}%`;
     condElements.eletrodutoBar.style.width = `${Math.min(eletrodutoEscolhido.ocupacaoPercent, 100)}%`;
 
-    // Renderizar próximas 3 seções maiores
     const proximosEletrodutos = TABELA_ELETRODUTOS.slice(idxEletroduto + 1, idxEletroduto + 4);
     if (proximosEletrodutos.length > 0 && condElements.eletrodutoProximos) {
       condElements.eletrodutoProximos.innerHTML = proximosEletrodutos.map(item => {
@@ -554,7 +586,7 @@ function atualizarCalculoCondutos() {
     if (condElements.eletrodutoProximos) condElements.eletrodutoProximos.innerHTML = '<p class="text-[11px] text-upe-red font-bold">Sobrecarga acima do diâmetro máximo de 4".</p>';
   }
 
-  // 2. Eletrocalha (Limite 40%)
+  // 2. Eletrocalha
   const taxaLimiteEletrocalha = 0.40;
   let eletrocalhaEscolhida = null;
   let idxEletrocalha = -1;
@@ -574,7 +606,6 @@ function atualizarCalculoCondutos() {
     condElements.eletrocalhaOcupacao.textContent = `${eletrocalhaEscolhida.ocupacaoPercent.toFixed(1)}%`;
     condElements.eletrocalhaBar.style.width = `${Math.min(eletrocalhaEscolhida.ocupacaoPercent, 100)}%`;
 
-    // Renderizar próximas 3 seções maiores
     const proximasEletrocalhas = TABELA_ELETROCALHAS.slice(idxEletrocalha + 1, idxEletrocalha + 4);
     if (proximasEletrocalhas.length > 0 && condElements.eletrocalhaProximos) {
       condElements.eletrocalhaProximos.innerHTML = proximasEletrocalhas.map(item => {
@@ -599,7 +630,176 @@ function atualizarCalculoCondutos() {
 }
 
 // ==============================================================================
-// 7. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR vs CAPACITOR)
+// 8. FUNÇÃO DE CÁLCULO - ABA 4: QUEDA DE TENSÃO (2 MÉTODOS)
+// ==============================================================================
+function atualizarCalculoQueda() {
+  if (!quedaInputs.tensao) return;
+
+  const V = parseFloat(quedaInputs.tensao.value) || 220;
+  const Ic = parseFloat(quedaInputs.corrente.value) || 0;
+  const Lc = parseFloat(quedaInputs.comprimento.value) || 0;
+  const deltaVc = parseFloat(quedaInputs.limite.value) || 4.0;
+
+  if (V <= 0 || Ic <= 0 || Lc <= 0 || deltaVc <= 0) return;
+
+  if (quedaModo === 'ate25') {
+    // ==========================================================================
+    // MÉTODO 1: CONDUTORES ATÉ 25 mm² (SIMPLIFICADO)
+    // ==========================================================================
+    const sistema = quedaInputs.sistema.value;
+    const material = quedaInputs.material.value;
+
+    if (sistema === 'trifasico') {
+      if (quedaInputs.tensaoLabel) quedaInputs.tensaoLabel.textContent = 'Tensão Fase-Fase Vff (V)';
+    } else {
+      if (quedaInputs.tensaoLabel) quedaInputs.tensaoLabel.textContent = 'Tensão Fase-Neutro Vfn (V)';
+    }
+
+    const rho = material === 'cobre' ? (1 / 56) : (1 / 34);
+    let scCalculada = 0;
+    let formulaStr = '';
+
+    if (sistema === 'monofasico') {
+      scCalculada = (200 * rho * Lc * Ic) / (deltaVc * V);
+      formulaStr = `Sc = [200 · ρ · (Lc · Ic)] / (ΔVc · Vfn)<br>` +
+                   `Sc = [200 · (1/${material === 'cobre' ? '56' : '34'}) · (${Lc} · ${Ic})] / (${deltaVc} · ${V}) = <strong>${scCalculada.toFixed(3)} mm²</strong>`;
+    } else {
+      scCalculada = (100 * Math.sqrt(3) * rho * Lc * Ic) / (deltaVc * V);
+      formulaStr = `Sc = [100 · √3 · ρ · (Lc · Ic)] / (ΔVc · Vff)<br>` +
+                   `Sc = [100 · 1.732 · (1/${material === 'cobre' ? '56' : '34'}) · (${Lc} · ${Ic})] / (${deltaVc} · ${V}) = <strong>${scCalculada.toFixed(3)} mm²</strong>`;
+    }
+
+    const scComercial = SECOES_COMERCIAIS_TODAS.find(s => s >= scCalculada) || null;
+
+    let deltaVRealPercent = 0;
+    let deltaVRealVolts = 0;
+
+    if (scComercial) {
+      if (sistema === 'monofasico') {
+        deltaVRealPercent = (200 * rho * Lc * Ic) / (scComercial * V);
+      } else {
+        deltaVRealPercent = (100 * Math.sqrt(3) * rho * Lc * Ic) / (scComercial * V);
+      }
+      deltaVRealVolts = (deltaVRealPercent / 100) * V;
+    }
+
+    // Configuração dos Cards
+    quedaOutputs.metodoBadge.textContent = 'Simplificado (≤ 25 mm²)';
+    quedaOutputs.paraleloInfo.textContent = 'Condutor único por fase';
+    quedaOutputs.card2Titulo.textContent = 'Seção Mínima Sc';
+    quedaOutputs.card2Valor.textContent = scCalculada.toFixed(2);
+    quedaOutputs.card2Unidade.textContent = 'mm²';
+    quedaOutputs.card2Legenda.textContent = 'Cálculo analítico pela fórmula';
+
+    quedaOutputs.formulaBox.innerHTML = formulaStr;
+
+    if (scComercial) {
+      quedaOutputs.secaoComercial.textContent = scComercial;
+      quedaOutputs.deltaPercent.textContent = deltaVRealPercent.toFixed(2);
+      quedaOutputs.deltaVolts.textContent = deltaVRealVolts.toFixed(2);
+    } else {
+      quedaOutputs.secaoComercial.textContent = '> 240';
+      quedaOutputs.deltaPercent.textContent = '--';
+      quedaOutputs.deltaVolts.textContent = '--';
+    }
+
+  } else {
+    // ==========================================================================
+    // MÉTODO 2: CONDUTORES > 25 mm² (FORMA COMPLETA - TRIFÁSICO)
+    // ΔVc = [√3 · Ic · Lc · (R · cosθ + X · senθ)] / (10 · Ncp · Vff)  (%)
+    // ==========================================================================
+    if (quedaInputs.tensaoLabel) quedaInputs.tensaoLabel.textContent = 'Tensão Fase-Fase Vff (V)';
+
+    const cosTheta = parseFloat(quedaInputs.cosPhi.value) || 0.85;
+    const senTheta = Math.sqrt(Math.max(0, 1 - Math.pow(cosTheta, 2)));
+    const ncp = parseInt(quedaInputs.ncp.value, 10) || 1;
+
+    // Busca do menor condutor comercial > 25 mm² que atende ΔVc <= limite
+    let condutorEscolhido = null;
+    let deltaVCalculadoPercent = 0;
+    let deltaVCalculadoVolts = 0;
+
+    for (let i = 0; i < SECOES_MAIORES_25.length; i++) {
+      const secao = SECOES_MAIORES_25[i];
+      const imp = TABELA_IMPEDANCIA_COBRE[secao];
+      if (!imp) continue;
+
+      // Fórmula Completa da imagem
+      const deltaPercent = (Math.sqrt(3) * Ic * Lc * (imp.r * cosTheta + imp.x * senTheta)) / (10 * ncp * V);
+
+      if (deltaPercent <= deltaVc) {
+        condutorEscolhido = {
+          secao: secao,
+          r: imp.r,
+          x: imp.x,
+          deltaPercent: deltaPercent,
+          deltaVolts: (deltaPercent / 100) * V
+        };
+        deltaVCalculadoPercent = deltaPercent;
+        deltaVCalculadoVolts = (deltaPercent / 100) * V;
+        break;
+      }
+    }
+
+    quedaOutputs.metodoBadge.textContent = 'Forma Completa (> 25 mm²)';
+    quedaOutputs.paraleloInfo.textContent = `${ncp} condutor(es) em paralelo por fase`;
+    quedaOutputs.card2Titulo.textContent = 'Queda Calculada';
+    quedaOutputs.card2Valor.textContent = deltaVCalculadoPercent > 0 ? deltaVCalculadoPercent.toFixed(2) : '--';
+    quedaOutputs.card2Unidade.textContent = '%';
+    quedaOutputs.card2Legenda.textContent = `Limite máximo admitido: ${deltaVc.toFixed(1)}%`;
+
+    if (condutorEscolhido) {
+      quedaOutputs.secaoComercial.textContent = condutorEscolhido.secao;
+      quedaOutputs.deltaPercent.textContent = condutorEscolhido.deltaPercent.toFixed(2);
+      quedaOutputs.deltaVolts.textContent = condutorEscolhido.deltaVolts.toFixed(2);
+
+      const termoImpedancia = (condutorEscolhido.r * cosTheta + condutorEscolhido.x * senTheta).toFixed(4);
+
+      quedaOutputs.formulaBox.innerHTML = 
+        `ΔVc = [√3 · Ic · Lc · (R · cosθ + X · senθ)] / (10 · Ncp · Vff)<br>` +
+        `ΔVc = [1.732 · ${Ic} · ${Lc} · (${condutorEscolhido.r} · ${cosTheta} + ${condutorEscolhido.x} · ${senTheta.toFixed(3)})] / (10 · ${ncp} · ${V})<br>` +
+        `ΔVc = [1.732 · ${Ic} · ${Lc} · ${termoImpedancia}] / (${10 * ncp * V}) = <strong>${condutorEscolhido.deltaPercent.toFixed(2)}%</strong> (${condutorEscolhido.deltaVolts.toFixed(2)} V)`;
+    } else {
+      quedaOutputs.secaoComercial.textContent = '> 240';
+      quedaOutputs.deltaPercent.textContent = '--';
+      quedaOutputs.deltaVolts.textContent = '--';
+      quedaOutputs.formulaBox.innerHTML = `Nenhuma bitola até 240 mm² atende o limite de queda de ${deltaVc}%. <strong>Aumente o número de condutores em paralelo (Ncp).</strong>`;
+    }
+  }
+}
+
+// ==============================================================================
+// 9. ALTERNÂNCIA DE MODOS NA ABA QUEDA DE TENSÃO
+// ==============================================================================
+function configurarModoQueda(modo) {
+  quedaModo = modo;
+
+  const btnAtivoClass = 'px-3 py-1.5 text-xs font-bold rounded-md bg-upe-blue text-white shadow-sm transition';
+  const btnInativoClass = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:text-upe-blue transition';
+
+  if (modo === 'ate25') {
+    quedaControls.btnAte25.className = btnAtivoClass;
+    quedaControls.btnAcima25.className = btnInativoClass;
+    quedaControls.modoBadge.textContent = 'Modo: Até 25 mm² (Simplificado)';
+
+    quedaControls.wrapperSistema.classList.remove('hidden');
+    quedaControls.wrapperMaterial.classList.remove('hidden');
+    quedaControls.wrapperAcima25.classList.add('hidden');
+  } else {
+    quedaControls.btnAcima25.className = btnAtivoClass;
+    quedaControls.btnAte25.className = btnInativoClass;
+    quedaControls.modoBadge.textContent = 'Modo: > 25 mm² (Forma Completa)';
+
+    quedaControls.wrapperSistema.classList.add('hidden');
+    quedaControls.wrapperMaterial.classList.add('hidden');
+    quedaControls.wrapperAcima25.classList.remove('hidden');
+  }
+
+  atualizarCalculoQueda();
+}
+
+// ==============================================================================
+// 10. ALTERNÂNCIA DE MODOS NA ABA AMPACIDADE (GERAL vs MOTOR vs CAPACITOR)
 // ==============================================================================
 function configurarModoAmpacidade(tipo) {
   ampTipoAplicacao = tipo;
@@ -675,7 +875,7 @@ function atualizarSubModoMotor() {
 }
 
 // ==============================================================================
-// 8. LISTENERS E EVENTOS
+// 11. LISTENERS E EVENTOS
 // ==============================================================================
 
 // Aba 1
@@ -686,7 +886,7 @@ Object.values(inputs).forEach(input => {
   }
 });
 
-// Aba 2 (Inputs principais e Fatores de Correção)
+// Aba 2
 Object.values(ampInputs).forEach(input => {
   if (input) {
     input.addEventListener('input', atualizarCalculoAmpacidade);
@@ -702,42 +902,6 @@ if (ampControls.tipoGeralBtn) ampControls.tipoGeralBtn.addEventListener('click',
 if (ampControls.tipoMotorBtn) ampControls.tipoMotorBtn.addEventListener('click', () => configurarModoAmpacidade('motor'));
 if (ampControls.tipoCapacitorBtn) ampControls.tipoCapacitorBtn.addEventListener('click', () => configurarModoAmpacidade('capacitor'));
 
-// Presets Aba 1
-/*function aplicarPreset(config) {
-  inputs.potencia.value = config.potencia;
-  inputs.tensao.value = config.tensao;
-  inputs.sistema.value = config.sistema;
-  inputs.tipoUso.value = config.tipoUso;
-  inputs.cosPhi.value = config.cosPhi;
-  inputs.rendimento.value = config.rendimento;
-  inputs.temperatura.value = config.temperatura;
-  inputs.numCircuitos.value = config.numCircuitos;
-  inputs.comprimento.value = config.comprimento;
-  inputs.quedaMaxPercent.value = config.quedaMaxPercent;
-  atualizarCalculoGeral();
-}
-
-if (presets.chuveiro) {
-  presets.chuveiro.addEventListener('click', () => {
-    aplicarPreset({ potencia: 7500, tensao: 220, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 1.0, rendimento: 1.0, temperatura: 35, numCircuitos: 2, comprimento: 18, quedaMaxPercent: 4.0 });
-  });
-}
-if (presets.ar) {
-  presets.ar.addEventListener('click', () => {
-    aplicarPreset({ potencia: 1400, tensao: 220, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 0.85, rendimento: 0.90, temperatura: 35, numCircuitos: 1, comprimento: 22, quedaMaxPercent: 4.0 });
-  });
-}
-if (presets.tugs) {
-  presets.tugs.addEventListener('click', () => {
-    aplicarPreset({ potencia: 2200, tensao: 127, sistema: 'monofasico', tipoUso: 'forca', cosPhi: 1.0, rendimento: 1.0, temperatura: 30, numCircuitos: 3, comprimento: 12, quedaMaxPercent: 4.0 });
-  });
-}
-if (presets.ilum) {
-  presets.ilum.addEventListener('click', () => {
-    aplicarPreset({ potencia: 600, tensao: 220, sistema: 'monofasico', tipoUso: 'iluminacao', cosPhi: 0.95, rendimento: 1.0, temperatura: 30, numCircuitos: 2, comprimento: 25, quedaMaxPercent: 4.0 });
-  });
-}*/
-
 // Aba 3 (Condutos)
 if (condElements.btnAddCabo) {
   condElements.btnAddCabo.addEventListener('click', () => {
@@ -747,9 +911,20 @@ if (condElements.btnAddCabo) {
   });
 }
 
-// Alternador de Abas
+// Aba 4 (Queda de Tensão)
+Object.values(quedaInputs).forEach(input => {
+  if (input) {
+    input.addEventListener('input', atualizarCalculoQueda);
+    input.addEventListener('change', atualizarCalculoQueda);
+  }
+});
+
+if (quedaControls.btnAte25) quedaControls.btnAte25.addEventListener('click', () => configurarModoQueda('ate25'));
+if (quedaControls.btnAcima25) quedaControls.btnAcima25.addEventListener('click', () => configurarModoQueda('acima25'));
+
+// Alternador Geral de Abas
 function alternarAba(abaAtiva) {
-  const todasAbas = ['geral', 'ampacidade', 'condutos'];
+  const todasAbas = ['geral', 'ampacidade', 'condutos', 'queda'];
   todasAbas.forEach(aba => {
     const content = document.getElementById(`tab-content-${aba}`);
     const btn = document.getElementById(`tab-btn-${aba}`);
@@ -766,11 +941,13 @@ function alternarAba(abaAtiva) {
 if (tabs.btnGeral) tabs.btnGeral.addEventListener('click', () => alternarAba('geral'));
 if (tabs.btnAmpacidade) tabs.btnAmpacidade.addEventListener('click', () => alternarAba('ampacidade'));
 if (tabs.btnCondutos) tabs.btnCondutos.addEventListener('click', () => alternarAba('condutos'));
+if (tabs.btnQueda) tabs.btnQueda.addEventListener('click', () => alternarAba('queda'));
 
 // ==============================================================================
-// 9. INICIALIZAÇÃO AUTOMÁTICA
+// 12. INICIALIZAÇÃO AUTOMÁTICA
 // ==============================================================================
 atualizarCalculoGeral();
 atualizarCalculoAmpacidade();
 renderizarLinhasCabos();
 atualizarCalculoCondutos();
+atualizarCalculoQueda();
